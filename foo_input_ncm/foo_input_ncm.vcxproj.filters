@@ -21,18 +21,42 @@
     <ClInclude Include="stdafx.h">
       <Filter>Precompile File</Filter>
     </ClInclude>
-    <ClInclude Include="NcmLoader.h">
+    <ClCompile Include="stdafx.cpp">
+      <Filter>Precompile File</Filter>
+    </ClCompile>
+    <ClInclude Include="common\defines.h">
+      <Filter>Header File</Filter>
+    </ClInclude>
+    <ClInclude Include="cipher\aes.h">
+      <Filter>Header File</Filter>
+    </ClInclude>
+    <ClInclude Include="cipher\cipher.h">
+      <Filter>Header File</Filter>
+    </ClInclude>
+    <ClInclude Include="common\helpers.h">
+      <Filter>Header File</Filter>
+    </ClInclude>
+    <ClInclude Include="input_ncm.h">
+      <Filter>Header File</Filter>
+    </ClInclude>
+    <ClInclude Include="cipher\exception.h">
+      <Filter>Header File</Filter>
+    </ClInclude>
+    <ClInclude Include="cipher\abnormal_RC4.h">
       <Filter>Header File</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="foo_ncm.cpp">
+    <ClCompile Include="cipher\aes.cpp">
       <Filter>Source File</Filter>
     </ClCompile>
-    <ClCompile Include="stdafx.cpp">
-      <Filter>Precompile File</Filter>
+    <ClCompile Include="main.cpp">
+      <Filter>Source File</Filter>
     </ClCompile>
-    <ClCompile Include="NcmLoader.cpp">
+    <ClCompile Include="input_ncm.cpp">
+      <Filter>Source File</Filter>
+    </ClCompile>
+    <ClCompile Include="cipher\abnormal_RC4.cpp">
       <Filter>Source File</Filter>
     </ClCompile>
   </ItemGroup>

@@ -1,12 +1,17 @@
-put sdk file here
+put foobar2000 sdk and wtl lib here. e.g.
 
 ```
-$ tree -d -L 1
+$ tree -d -L 2
 .
-├── foobar2000
-├── libPPUI
-└── pfc
+├── sdk
+│   ├── foobar2000
+│   ├── libPPUI
+│   └── pfc
+└── wtl
+    ├── AppWizard
+    ├── Include
+    └── Samples
 
-3 directories
+8 directories
 
 ```

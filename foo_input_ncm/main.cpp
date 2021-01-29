@@ -7,4 +7,6 @@ DECLARE_COMPONENT_VERSION(
 );
 
 // This will prevent users from renaming your component around (important for proper troubleshooter behaviors) or loading multiple instances of it.
-VALIDATE_COMPONENT_FILENAME("foo_ncm.dll");
+VALIDATE_COMPONENT_FILENAME("foo_input_ncm.dll");
+
+DECLARE_FILE_TYPE("Netease Music specific format files","*.ncm")
