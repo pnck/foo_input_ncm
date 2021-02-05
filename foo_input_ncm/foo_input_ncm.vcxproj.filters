@@ -45,6 +45,9 @@
     <ClInclude Include="cipher\abnormal_RC4.h">
       <Filter>Header File</Filter>
     </ClInclude>
+    <ClInclude Include="ncm_file.h">
+      <Filter>Header File</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="cipher\aes.cpp">
@@ -57,6 +60,9 @@
       <Filter>Source File</Filter>
     </ClCompile>
     <ClCompile Include="cipher\abnormal_RC4.cpp">
+      <Filter>Source File</Filter>
+    </ClCompile>
+    <ClCompile Include="ncm_file.cpp">
       <Filter>Source File</Filter>
     </ClCompile>
   </ItemGroup>

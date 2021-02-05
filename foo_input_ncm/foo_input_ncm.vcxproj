@@ -234,6 +234,7 @@ copy $(TargetPath) $(SolutionDir)test\foobar2000\components</Command>
     <ClInclude Include="common\helpers.h" />
     <ClInclude Include="common\defines.h" />
     <ClInclude Include="input_ncm.h" />
+    <ClInclude Include="ncm_file.h" />
     <ClInclude Include="stdafx.h" />
   </ItemGroup>
   <ItemGroup>
@@ -254,6 +255,7 @@ copy $(TargetPath) $(SolutionDir)test\foobar2000\components</Command>
     </ClCompile>
     <ClCompile Include="main.cpp" />
     <ClCompile Include="input_ncm.cpp" />
+    <ClCompile Include="ncm_file.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
