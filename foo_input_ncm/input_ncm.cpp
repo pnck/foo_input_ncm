@@ -1,7 +1,9 @@
 #include "stdafx.h"
 #include "input_ncm.h"
 #include "cipher/cipher.h"
-
+#include "rapidjson/include/rapidjson/document.h"
+#include "rapidjson/include/rapidjson/stringbuffer.h"
+#include "rapidjson/include/rapidjson/prettywriter.h"
 
 #include <string>
 #include <algorithm>
@@ -9,7 +11,7 @@
 using namespace fb2k_ncm;
 
 inline void fb2k_ncm::input_ncm::throw_format_error() {
-    throw exception_io_data("Unsupported format or corrupted file");
+    throw exception_io_unsupported_format("Unsupported format or corrupted file");
 }
 
 inline const char * fb2k_ncm::input_ncm::g_get_name() {
@@ -29,7 +31,7 @@ inline bool fb2k_ncm::input_ncm::g_is_our_content_type(const char * p_content_ty
 }
 
 inline void fb2k_ncm::input_ncm::retag(const file_info & p_info, abort_callback & p_abort) {
-    throw exception_io_unsupported_format();
+    throw exception_io_unsupported_format("Modification on ncm file not supported.");
 }
 
 inline bool fb2k_ncm::input_ncm::decode_can_seek() {
@@ -79,8 +81,11 @@ void input_ncm::open(service_ptr_t<file> p_filehint, const char * p_path, t_inpu
         if (strncmp(reinterpret_cast<char*>(data.get()), "neteasecloudmusic", 17)) {
             throw_format_error();
         }
-        rc4_seed_.assign(data.get() + 17, data.get() + parsed_file_.rc4_seed_len - cipher::guess_padding(data.get() + parsed_file_.rc4_seed_len));
-        file_ptr_->rc4_decrypter = cipher::abnormal_RC4(rc4_seed_);
+
+        file_ptr_->rc4_decrypter = cipher::abnormal_RC4({
+                data.get() + 17,
+                data.get() + parsed_file_.rc4_seed_len - cipher::guess_padding(data.get() + parsed_file_.rc4_seed_len)
+            });
         file_ptr_->source_->read(&parsed_file_.meta_len, sizeof(parsed_file_.meta_len), p_abort);
         if (0 == parsed_file_.meta_len) {
             FB2K_console_formatter() << "[WARN] No meta data found in ncm file: " << file_path_;
@@ -112,12 +117,15 @@ void input_ncm::decode_initialize(unsigned p_flags, abort_callback & p_abort) {
 
     //file_ptr_->source_->seek(file_ptr_->audio_content_off_, p_abort);
     service_list_t<input_entry> result;
-    input_entry::g_find_inputs_by_content_type(result, "audio/flac", false);
+    input_entry::g_find_inputs_by_content_type(result, "audio/mpeg", false);
     service_ptr_t<input_entry_v2> ptr;
     result[0]->cast(ptr);
 
-    FB2K_console_formatter() << FB2K_DebugLog() << "using decoder for ncm file: " << ptr->get_name();
+    FB2K_console_formatter() << FB2K_DebugLog() << "Actual decoder for ncm file: " << ptr->get_name();
     ptr->open_for_decoding(decoder_, file_ptr_, file_path_, p_abort);
+    if (decoder_.is_empty()) {
+        throw exception_service_not_found("Cannot get audio decoder.");
+    }
     decoder_->initialize(0, p_flags, p_abort);
 }
 
@@ -126,7 +134,7 @@ t_filestats input_ncm::get_file_stats(abort_callback & p_abort) {
 }
 
 void input_ncm::get_info(file_info & p_info, abort_callback & p_abort) {
-    decoder_->get_info(0, p_info, p_abort);
+
 }
 
 
@@ -144,6 +152,21 @@ public:
             FB2K_console_formatter() << ptr->get_name() << " " << pfc::print_guid(ptr->class_guid);
         }
 
+        rapidjson::Document d;
+        d.Parse(
+            u8R"__(
+
+{
+"array":[1,2,3],
+"object":{"ok":true}
+}
+
+)__"
+);
+        rapidjson::StringBuffer sb;
+        rapidjson::PrettyWriter writer(sb);
+        d.Accept(writer);
+        FB2K_console_formatter() << sb.GetString();
     }
     void on_quit() {
 

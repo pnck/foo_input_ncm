@@ -1,8 +1,21 @@
 ﻿#include "stdafx.h"
 
+/**
+    changelog
+
+Version 0.0.2
+- able to play specific content (flac/mp3) ncm file
+- get basic file stats
+
+Version 0.0.1
+- file decryption ciphers
+- loadable plugin stub
+
+**/
+
 DECLARE_COMPONENT_VERSION(
 "Ncm Loader",
-"0.0.1",
+"0.0.3",
 "Load Netease Music specific file format (ncm) directly.\n"
 );
 

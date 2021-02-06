@@ -13,7 +13,7 @@ namespace fb2k_ncm::cipher {
 
         // private:
         std::vector<uint8_t> key_seed_;
-        std::shared_ptr<uint8_t[]> key_box_; // class copyable, thus copy-on-write this key box
+        std::shared_ptr<uint8_t[]> key_box_; 
     };
 
 }

@@ -15,6 +15,8 @@
 [Dd]ebugPublic/
 [Rr]elease/
 [Rr]eleases/
+Release\ FB2K/
+Debug\ FB2K/
 x64/
 x86/
 bld/
@@ -259,3 +261,6 @@ paket-files/
 # Python Tools for Visual Studio (PTVS)
 __pycache__/
 *.pyc
+
+# Vendor
+Vendor/*/
