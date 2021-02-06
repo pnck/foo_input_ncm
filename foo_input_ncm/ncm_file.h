@@ -20,12 +20,12 @@ namespace fb2k_ncm {
         bool is_remote() override;
         t_filetimestamp get_timestamp(abort_callback & p_abort) override;
     public:
-        explicit ncm_file(file_ptr& source) :source_(source), audio_content_off_(0) {}
+        explicit ncm_file(file_ptr& source) :source_(source), audio_content_offset_(0) {}
         FB2K_MAKE_SERVICE_INTERFACE(ncm_file, file);
     public:
         file_ptr source_;
         cipher::abnormal_RC4 rc4_decrypter;
-        t_filesize audio_content_off_;
+        t_filesize audio_content_offset_;
     };
 
     DECLARE_CLASS_GUID(ncm_file, 0x9c99d51e, 0x1228, 0x4f25, 0x91, 0x63, 0xf1, 0x56, 0x1e, 0x57, 0x5b, 0x13);
