@@ -1,0 +1,4 @@
+[submodule "vendor/rapidjson"]
+	path = vendor/rapidjson
+	url = git@github.com:Tencent/rapidjson.git
+	branch = master

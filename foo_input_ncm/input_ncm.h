@@ -1,6 +1,6 @@
 #pragma once
 #include "stdafx.h"
-#include "common/defines.h"
+#include "common/define.h"
 #include "ncm_file.h"
 #include <vector>
 
@@ -31,7 +31,5 @@ namespace fb2k_ncm {
         const char* file_path_;
         ncm_file_st parsed_file_;
         service_ptr_t<input_decoder> decoder_;
-    private: // ncm file structures
-        std::vector<uint8_t> rc4_seed_;
     };
 }
