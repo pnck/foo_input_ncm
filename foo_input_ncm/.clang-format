@@ -1,0 +1,64 @@
+# The extra indent or outdent of access modifiers
+AccessModifierOffset: -4
+
+# Align parameters on the open bracket
+AlignAfterOpenBracket: Align
+
+# Disallows contracting simple braced statements to a single line
+AllowShortBlocksOnASingleLine: 'false'
+
+# Short case labels wont't be contracted to a single line
+AllowShortCaseLabelsOnASingleLine: 'false'
+
+# Merge all inline functions fitting on a single line
+AllowShortFunctionsOnASingleLine: 'Inline'
+
+# If (a) return; cannot be put on a single line
+AllowShortIfStatementsOnASingleLine: 'false'
+
+# While (true) continue; cannot be put on a single line
+AllowShortLoopsOnASingleLine: 'false'
+
+# Break after the template<...> of a template declaration.
+AlwaysBreakTemplateDeclarations: 'true'
+
+# Configure each individual brace in BraceWrapping
+BreakBeforeBraces: 'Custom'
+
+# Control of individual brace wrapping cases
+BraceWrapping: {
+    AfterClass: 'false'
+    AfterControlStatement: 'false'
+    AfterEnum : 'false'
+    AfterFunction : 'false'
+    AfterNamespace : 'true'
+    AfterStruct : 'false'
+    AfterUnion : 'false'
+    BeforeCatch : 'false'
+    BeforeElse : 'false'
+    IndentBraces : 'false'
+}
+
+# The column limit
+ColumnLimit: '120'
+
+# The number of columns to use for indentation.
+IndentWidth: '4'
+
+# Targeted language
+Language: Cpp
+
+# No indentation for namespaces.
+NamespaceIndentation: All
+
+# Pointer is aligned to right side
+PointerAlignment: Right
+
+# High penalty to avoid line break just after return type
+PenaltyReturnTypeOnItsOwnLine: 10000
+
+# Treat 'catch' BDD macros as control instructions
+ForEachMacros:   [ foreach, Q_FOREACH, BOOST_FOREACH, GIVEN, WHEN, AND_WHEN, THEN, AND_THEN, SECTION ]
+
+SortIncludes: 'false'
+#...
