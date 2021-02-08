@@ -17,7 +17,7 @@ Version 0.0.1
 
 **/
 
-DECLARE_COMPONENT_VERSION("Ncm Loader", "0.0.3", "Load and play Netease Music specific file format (ncm) directly.\n");
+DECLARE_COMPONENT_VERSION("Ncm Loader", "0.1.0", "Load and play Netease Music specific file format (ncm) directly.\n");
 
 // This will prevent users from renaming your component around (important for proper troubleshooter behaviors) or
 // loading multiple instances of it.
