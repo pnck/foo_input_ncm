@@ -3,7 +3,6 @@
 #include "common/define.h"
 #include "ncm_file.h"
 
-#include "rapidjson/include/rapidjson/document.h"
 #include <vector>
 
 namespace fb2k_ncm
@@ -12,7 +11,7 @@ namespace fb2k_ncm
     class input_ncm : public input_stubs {
 
     public:
-        input_ncm() : file_path_(nullptr) {}
+        input_ncm() = default;
         virtual ~input_ncm(){};
 
     public:
@@ -21,7 +20,6 @@ namespace fb2k_ncm
         static const char *g_get_name();
         static bool g_is_our_path(const char *p_path, const char *p_extension);
         static const GUID g_get_guid();
-        ;
         static bool g_is_our_content_type(const char *p_content_type);
         void retag(const file_info &p_info, abort_callback &p_abort);
         bool decode_can_seek();
@@ -32,16 +30,8 @@ namespace fb2k_ncm
         void get_info(file_info &p_info, abort_callback &p_abort);
 
     private:
-        void throw_format_error();
-
-    private:
-        service_ptr_t<ncm_file> file_ptr_;
-        std::string meta_str_;
-        const char *file_path_;
-        ncm_file_st parsed_file_;
+        service_ptr_t<ncm_file> ncm_file_;
         service_ptr_t<input_decoder> decoder_;
         service_ptr_t<input_info_reader> source_info_reader_;
-        rapidjson::Document meta_json_;
-        std::vector<uint8_t> image_data_;
     };
 } // namespace fb2k_ncm

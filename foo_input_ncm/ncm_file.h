@@ -2,6 +2,7 @@
 #include "sdk/foobar2000/SDK/foobar2000.h"
 #include "cipher/abnormal_RC4.h"
 #include "common/define.h"
+#include "rapidjson/include/rapidjson/document.h"
 
 namespace fb2k_ncm
 {
@@ -21,15 +22,27 @@ namespace fb2k_ncm
         t_filetimestamp get_timestamp(abort_callback &p_abort) override;
 
     public:
-        explicit ncm_file(file_ptr &source) : source_(source), audio_content_offset_(0) {}
-        FB2K_MAKE_SERVICE_INTERFACE(ncm_file, file);
+        explicit ncm_file(file_ptr &source, const char *path)
+            : source_(source), this_path_(path), audio_content_offset_(0) {}
+        const char *path() const { return this_path_; }
+        PFC_NORETURN void ensure_audio_offset();
+        void parse();
+        inline const rapidjson::Document &meta() const { return meta_json_; }
+
+    private:
+        inline void throw_format_error();
 
     public:
         file_ptr source_;
-        cipher::abnormal_RC4 rc4_decrypter;
-        t_filesize audio_content_offset_;
-    };
 
-    FOOGUIDDECL const GUID ncm_file::class_guid = guid_candidates[1];
+    private:
+        const char *this_path_;
+        ncm_file_st parsed_file_;
+        t_filesize audio_content_offset_;
+        std::string meta_str_;
+        rapidjson::Document meta_json_;
+        cipher::abnormal_RC4 rc4_decrypter_;
+        std::vector<uint8_t> image_data_;
+    };
 
 } // namespace fb2k_ncm
