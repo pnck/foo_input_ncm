@@ -48,6 +48,9 @@
     <ClInclude Include="common\define.h">
       <Filter>Header File</Filter>
     </ClInclude>
+    <ClInclude Include="album_art_extractor.h">
+      <Filter>Header File</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="cipher\aes.cpp">
@@ -63,6 +66,9 @@
       <Filter>Source File</Filter>
     </ClCompile>
     <ClCompile Include="ncm_file.cpp">
+      <Filter>Source File</Filter>
+    </ClCompile>
+    <ClCompile Include="album_art_extractor.cpp">
       <Filter>Source File</Filter>
     </ClCompile>
   </ItemGroup>

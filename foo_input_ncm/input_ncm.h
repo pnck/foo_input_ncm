@@ -33,5 +33,6 @@ namespace fb2k_ncm
         service_ptr_t<ncm_file> ncm_file_;
         service_ptr_t<input_decoder> decoder_;
         service_ptr_t<input_info_reader> source_info_reader_;
+        service_ptr_t<input_info_writer> source_info_writer_;
     };
 } // namespace fb2k_ncm

@@ -122,6 +122,7 @@ copy $(TargetPath) $(SolutionDir)test\foobar2000\components</Command>
     </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="album_art_extractor.h" />
     <ClInclude Include="cipher\abnormal_RC4.h" />
     <ClInclude Include="cipher\aes.h" />
     <ClInclude Include="cipher\cipher.h" />
@@ -133,6 +134,7 @@ copy $(TargetPath) $(SolutionDir)test\foobar2000\components</Command>
     <ClInclude Include="stdafx.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="album_art_extractor.cpp" />
     <ClCompile Include="cipher\abnormal_RC4.cpp" />
     <ClCompile Include="cipher\aes.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
