@@ -3,6 +3,10 @@
 /**
     changelog
 
+Version 0.2.0
+- decode and play any ncm file
+- correctly recognize meta info and album artworks
+
 Version 0.1.0
 - decode and play any ncm file
 - meta info correctly recognized (without album artwork)
@@ -17,7 +21,7 @@ Version 0.0.1
 
 **/
 
-DECLARE_COMPONENT_VERSION("Ncm Loader", "0.1.0", "Load and play Netease Music specific file format (ncm) directly.\n");
+DECLARE_COMPONENT_VERSION("Ncm Loader", "0.2.0", "Load and play Netease Music specific file format (ncm) directly.\n");
 
 // This will prevent users from renaming your component around (important for proper troubleshooter behaviors) or
 // loading multiple instances of it.

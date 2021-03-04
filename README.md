@@ -1,3 +1,7 @@
+## Play NCM files directly with our favourite
+![screenshot](/screenshot.png)
+
+
 ### How to setup and build project
 
 1. Download [foobar2000 SDK](https://www.foobar2000.org/SDK) and extract into vendor/sdk
