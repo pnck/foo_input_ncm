@@ -1,6 +1,4 @@
-#include "stdafx.h"
-#include "album_art_extractor.h"
-#include "ncm_file.h"
+#include "album_art_extractor.hpp"
 
 using namespace fb2k_ncm;
 

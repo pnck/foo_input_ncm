@@ -1,8 +1,7 @@
 #pragma once
 
 #include "stdafx.h"
-#include "ncm_file.h"
-#include "common/define.h"
+#include "ncm_file.hpp"
 
 namespace fb2k_ncm
 {

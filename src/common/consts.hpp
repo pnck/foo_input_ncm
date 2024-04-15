@@ -1,6 +1,7 @@
 #pragma once
 
-#include <stdint.h>
+#include <cstdint>
+#include "platform.hpp"
 
 constexpr inline GUID guid_candidates[] = {
     {0x0ef1cb99, 0x91ad, 0x486c, {0x82, 0x82, 0xda, 0x70, 0x98, 0x4e, 0xa8, 0x51}}, // input_ncm

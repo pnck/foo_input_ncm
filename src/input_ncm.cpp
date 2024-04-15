@@ -1,5 +1,4 @@
-#include "stdafx.h"
-#include "input_ncm.h"
+#include "input_ncm.hpp"
 
 #include <string>
 #include <algorithm>

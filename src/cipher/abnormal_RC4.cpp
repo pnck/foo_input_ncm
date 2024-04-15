@@ -1,5 +1,5 @@
 #include "stdafx.h"
-#include "abnormal_RC4.h"
+#include "abnormal_RC4.hpp"
 
 #include <numeric>
 #include <algorithm>

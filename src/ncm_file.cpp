@@ -1,7 +1,4 @@
-#include "stdafx.h"
-#include "ncm_file.h"
-#include "cipher/cipher.h"
-
+#include "ncm_file.hpp"
 #include "rapidjson/include/rapidjson/stringbuffer.h"
 
 #include <algorithm>

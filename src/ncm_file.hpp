@@ -1,7 +1,7 @@
 #pragma once
-#include "sdk/foobar2000/SDK/foobar2000.h"
-#include "cipher/abnormal_RC4.h"
-#include "common/define.h"
+
+#include "stdafx.h"
+#include "cipher/cipher.h"
 #include "rapidjson/include/rapidjson/document.h"
 
 namespace fb2k_ncm

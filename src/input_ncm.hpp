@@ -1,7 +1,7 @@
 #pragma once
+
 #include "stdafx.h"
-#include "common/define.h"
-#include "ncm_file.h"
+#include "ncm_file.hpp"
 
 #include <vector>
 
