@@ -1,3 +1,4 @@
+#include "stdafx.h"
 #include "input_ncm.hpp"
 
 #include <string>
@@ -27,6 +28,8 @@ inline void fb2k_ncm::input_ncm::retag(const file_info &p_info, abort_callback &
     }
     // throw exception_io_unsupported_format("Modification on ncm file not supported.");
 }
+
+inline void fb2k_ncm::input_ncm::remove_tags(abort_callback &p_abort) {}
 
 inline bool fb2k_ncm::input_ncm::decode_can_seek() {
     return decoder_->can_seek();
@@ -132,6 +135,10 @@ void input_ncm::decode_initialize(unsigned p_flags, abort_callback &p_abort) {
 t_filestats input_ncm::get_file_stats(abort_callback &p_abort) {
     // return real file stats, which would be displayed on Properties/Location
     return ncm_file_->source_->get_stats(p_abort);
+}
+
+t_filestats2 fb2k_ncm::input_ncm::get_stats2(uint32_t f, abort_callback &a) {
+    return ncm_file_->source_->get_stats2_(f, a);
 }
 
 void input_ncm::get_info(file_info &p_info, abort_callback &p_abort) {

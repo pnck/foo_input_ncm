@@ -1,3 +1,4 @@
+#include "stdafx.h"
 #include "ncm_file.hpp"
 #include "rapidjson/include/rapidjson/stringbuffer.h"
 

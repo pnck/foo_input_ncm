@@ -27,7 +27,9 @@ namespace fb2k_ncm
         bool decode_run(audio_chunk &p_chunk, abort_callback &p_abort);
         void decode_initialize(unsigned p_flags, abort_callback &p_abort);
         t_filestats get_file_stats(abort_callback &p_abort);
+        t_filestats2 get_stats2(uint32_t f, abort_callback &a);
         void get_info(file_info &p_info, abort_callback &p_abort);
+        void remove_tags(abort_callback &p_abort);
 
     private:
         service_ptr_t<ncm_file> ncm_file_;

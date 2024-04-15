@@ -1,107 +1,30 @@
 #pragma once
 
-#include <ntstatus.h>
-#define WIN32_NO_STATUS
-#include <Windows.h>
-#include <bcrypt.h>
-#undef WIN32_NO_STATUS
-#pragma comment(lib, "Bcrypt.lib")
-
 #include <vector>
 #include <sstream>
 #include <iomanip>
 #include <variant>
 #include <memory>
 
-#include "common/helpers.h"
-#include "cipher/exception.h"
+#include "common/platform.hpp"
+#include "common/helpers.hpp"
+#include "cipher/exception.hpp"
 
-#ifndef NT_SUCCESS
-#define NT_SUCCESS(Status) (((NTSTATUS)(Status)) >= 0)
-#endif
+#include "aes_win32.hpp"
 
 namespace fb2k_ncm::cipher
 {
 
     enum { AES_BLOCKSIZE = 16 };
-    inline size_t aligned(size_t v) { return 1 + (v | (AES_BLOCKSIZE - 1)); }
+    inline size_t aligned(size_t v) {
+        return 1 + (v | (AES_BLOCKSIZE - 1));
+    }
 
     enum class aes_chain_mode {
         ECB,
         CBC,
     };
 
-    // AES cipher object handle the crypto state internally
-    template <size_t KEYLEN>
-    class AES {
-        friend class AES_context;
-
-    public:
-        AES(const uint8_t (&key)[KEYLEN]) {
-            static_assert(KEYLEN == 16 || KEYLEN == 24 || KEYLEN == 32, "AES key length invalid");
-
-            NTSTATUS status = STATUS_UNSUCCESSFUL;
-            if (!NT_SUCCESS(status = BCryptOpenAlgorithmProvider(&h_crypt_, BCRYPT_AES_ALGORITHM, NULL, 0))) {
-                throw cipher_error("BCryptOpenAlgorithmProvider failed", status);
-            }
-            load_key(key);
-        }
-        AES() {
-            NTSTATUS status = STATUS_UNSUCCESSFUL;
-            if (!NT_SUCCESS(status = BCryptOpenAlgorithmProvider(&h_crypt_, BCRYPT_AES_ALGORITHM, NULL, 0))) {
-                throw cipher_error("BCryptOpenAlgorithmProvider failed", status);
-            }
-        }
-        ~AES() {
-            if (h_key_) {
-                BCryptDestroyKey(h_key_);
-                h_key_ = NULL;
-            }
-            if (h_crypt_) {
-                BCryptCloseAlgorithmProvider(h_crypt_, 0);
-                h_crypt_ = NULL;
-            }
-        }
-        AES(AES<KEYLEN> &&tmp) noexcept { operator=(std::move(tmp)); }
-        AES(AES<KEYLEN> &) = delete;
-        void operator=(AES<KEYLEN> &) = delete;
-        void operator=(AES<KEYLEN> &&tmp) noexcept {
-            h_crypt_ = tmp.h_crypt_;
-            h_key_ = tmp.h_key_;
-            tmp.h_crypt_ = NULL;
-            tmp.h_key_ = NULL;
-        }
-
-    public:
-        void load_key(const uint8_t (&key)[KEYLEN]) {
-            return load_key(std::vector<uint8_t>(std::begin(key), std::end(key)));
-        }
-        void load_key(const std::vector<uint8_t> key) {
-            NTSTATUS status = STATUS_UNSUCCESSFUL;
-            if (!h_crypt_) {
-                throw cipher_error("Crypto provider error", status);
-            }
-            if (h_key_) {
-                throw cipher_error("Key already loaded", status);
-            }
-            if (key.size() != KEYLEN) {
-                throw cipher_error("Invalid key length", status);
-            }
-            if (!NT_SUCCESS(
-                    status = BCryptGenerateSymmetricKey(h_crypt_, &h_key_, NULL, 0, (PUCHAR)key.data(), KEYLEN, 0))) {
-                throw cipher_error("BCryptGenerateSymmetricKey failed", status);
-            }
-        }
-
-    private:
-        BCRYPT_ALG_HANDLE h_crypt_ = NULL;
-        BCRYPT_KEY_HANDLE h_key_ = NULL;
-        constexpr static size_t key_len() { return KEYLEN; }
-    };
-
-    using AES128 = AES<16>;
-    using AES192 = AES<24>;
-    using AES256 = AES<32>;
 
     // indicates the decrypting (currently encrypt not needed) context and buffer
     class AES_context {
@@ -154,17 +77,17 @@ namespace fb2k_ncm::cipher
         size_t do_decrypt(uint8_t *dst, size_t cb_dst, const uint8_t *src, const size_t cb_src) {
             auto h_key = std::visit([this](auto &&_) { return internal_get_key_handle(_); }, crypt_);
             auto __ = mapped_str<M>;
-            if (!NT_SUCCESS(status_ = BCryptSetProperty(h_key, BCRYPT_CHAINING_MODE, (PUCHAR)mapped_str<M>,
-                                                        sizeof(mapped_str<M>), 0))) {
+            if (!SUCCESS(status_ = BCryptSetProperty(h_key, BCRYPT_CHAINING_MODE, (PUCHAR)mapped_str<M>,
+                                                     sizeof(mapped_str<M>), 0))) {
                 throw cipher_error("BCryptSetProperty set chain mode failed", status_);
             }
             ULONG required_size = 0;
-            if (!NT_SUCCESS(status_ = BCryptDecrypt(h_key, (PUCHAR)src, cb_src, NULL, NULL, 0, NULL, 0, &required_size,
-                                                    0 /*BCRYPT_BLOCK_PADDING*/))) {
+            if (!SUCCESS(status_ = BCryptDecrypt(h_key, (PUCHAR)src, cb_src, NULL, NULL, 0, NULL, 0, &required_size,
+                                                 0 /*BCRYPT_BLOCK_PADDING*/))) {
                 throw cipher_error("Cannot get required size", status_);
             }
-            if (!NT_SUCCESS(status_ = BCryptDecrypt(h_key, (PUCHAR)src, cb_src, NULL, NULL, 0, (PUCHAR)dst, cb_dst,
-                                                    &required_size, 0 /*BCRYPT_BLOCK_PADDING*/))) {
+            if (!SUCCESS(status_ = BCryptDecrypt(h_key, (PUCHAR)src, cb_src, NULL, NULL, 0, (PUCHAR)dst, cb_dst,
+                                                 &required_size, 0 /*BCRYPT_BLOCK_PADDING*/))) {
                 throw cipher_error("BCryptDecrypt failed", status_);
             }
             return required_size;

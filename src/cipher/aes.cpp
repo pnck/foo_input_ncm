@@ -1,3 +1,4 @@
+#include "stdafx.h"
 #include "aes.h"
 
 using namespace fb2k_ncm::cipher;
