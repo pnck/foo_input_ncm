@@ -10,10 +10,10 @@ constexpr inline GUID guid_candidates[] = {
     {0xc2cb5fa6, 0x9d9f, 0x47ec, {0xae, 0x3a, 0x18, 0x5f, 0xc7, 0x98, 0xd6, 0x2c}},
 };
 
-struct _check_cpp17 {
+struct _check_cpp_std {
     constexpr static inline bool _check() {
         // if assert failed, add `/Zc:__cplusplus`  to project property -> C/C++ -> command line
-        static_assert(__cplusplus >= 201703L, "c++17 standard required");
+        static_assert(__cplusplus >= 202002L, "c++20 standard required");
         return true;
     }
 };

@@ -1,10 +1,10 @@
 #include "stdafx.h"
-#include "aes.h"
+#include "aes_win32.hpp"
 
-using namespace fb2k_ncm::cipher;
+using namespace fb2k_ncm::cipher::details;
 
 // validate buffers, ensure state flags
-void fb2k_ncm::cipher::AES_context::prepare() {
+void AES_context_win32::prepare() {
     is_done_ = false;
     status_ = STATUS_UNSUCCESSFUL;
     internal_buffer_.clear();
@@ -51,40 +51,40 @@ void fb2k_ncm::cipher::AES_context::prepare() {
     in_progress_ = true;
 }
 
-auto fb2k_ncm::cipher::AES_context::set_input(const std::vector<uint8_t> &input) -> decltype(*this) & {
+auto AES_context_win32::set_input(const std::vector<uint8_t> &input) -> decltype(*this) & {
     input_buffer_ = &input;
     input_buffer_size_ = input.size();
     input_head_ = input.data();
     return *this;
 }
 
-auto fb2k_ncm::cipher::AES_context::set_input(const uint8_t *input, size_t size) -> decltype(*this) & {
+auto AES_context_win32::set_input(const uint8_t *input, size_t size) -> decltype(*this) & {
     input_buffer_ = input;
     input_buffer_size_ = size;
     input_head_ = input;
     return *this;
 }
 
-auto fb2k_ncm::cipher::AES_context::set_output(std::vector<uint8_t> &output) -> decltype(*this) & {
+auto AES_context_win32::set_output(std::vector<uint8_t> &output) -> decltype(*this) & {
     output_buffer_ = &output;
     output_head_ = output.data();
     output_buffer_size_ = 0;
     return *this;
 }
 
-auto fb2k_ncm::cipher::AES_context::set_output(uint8_t *output, size_t size) -> decltype(*this) & {
+auto AES_context_win32::set_output(uint8_t *output, size_t size) -> decltype(*this) & {
     output_buffer_ = output;
     output_buffer_size_ = size;
     output_head_ = output;
     return *this;
 }
 
-auto fb2k_ncm::cipher::AES_context::set_chain_mode(aes_chain_mode mode) -> decltype(*this) & {
+auto AES_context_win32::set_chain_mode(aes_chain_mode mode) -> decltype(*this) & {
     chain_mode_ = mode;
     return *this;
 }
 
-auto fb2k_ncm::cipher::AES_context::decrypt_all() -> decltype(*this) & {
+auto AES_context_win32::decrypt_all() -> decltype(*this) & {
     if (is_done_) {
         throw cipher_error("Context finished", status_);
     }
@@ -94,7 +94,7 @@ auto fb2k_ncm::cipher::AES_context::decrypt_all() -> decltype(*this) & {
     return decrypt_chunk(input_remain());
 }
 
-auto fb2k_ncm::cipher::AES_context::decrypt_chunk(size_t chunk_size) -> decltype(*this) & {
+auto AES_context_win32::decrypt_chunk(size_t chunk_size) -> decltype(*this) & {
     if (is_done_) {
         throw cipher_error("Context finished", status_);
     }
@@ -137,14 +137,14 @@ auto fb2k_ncm::cipher::AES_context::decrypt_chunk(size_t chunk_size) -> decltype
     return *this;
 }
 
-auto fb2k_ncm::cipher::AES_context::decrypt_next() -> decltype(*this) & {
+auto AES_context_win32::decrypt_next() -> decltype(*this) & {
     if (!in_progress_ || is_done_) {
         throw cipher_error("Can't repeat decryption", status_);
     }
     return decrypt_chunk(last_chunk_size_);
 }
 
-void fb2k_ncm::cipher::AES_context::finish() {
+void AES_context_win32::finish() {
     finished_inputted_ = inputted_len();
     finished_outputted_ = outputted_len();
 
@@ -162,17 +162,17 @@ void fb2k_ncm::cipher::AES_context::finish() {
     last_chunk_size_ = 0;
 
     // clear and release bound crypt object
-    std::visit([this](auto &_t) { _t = std::decay_t<decltype(_t)>(); }, crypt_);
+    std::visit([this](auto &_t) { _t = std::decay_t<decltype(_t)>(); }, cipher_);
 }
 
 // get internal buffer as results
-std::vector<uint8_t> fb2k_ncm::cipher::AES_context::copy_buffer_as_vector() {
+std::vector<uint8_t> AES_context_win32::copy_buffer_as_vector() {
     auto tmp = std::move(internal_buffer_);
     internal_buffer_.clear();
     return tmp;
 }
 
-std::unique_ptr<uint8_t[]> fb2k_ncm::cipher::AES_context::copy_buffer_as_ptr() {
+std::unique_ptr<uint8_t[]> AES_context_win32::copy_buffer_as_ptr() {
     auto tmp = std::make_unique<uint8_t[]>(internal_buffer_.size());
     std::copy(internal_buffer_.begin(), internal_buffer_.end(), tmp.get());
     return tmp;

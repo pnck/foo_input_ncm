@@ -45,13 +45,16 @@
     <ClInclude Include="src\cipher\abnormal_RC4.hpp">
       <Filter>Header Files\cipher</Filter>
     </ClInclude>
-    <ClInclude Include="src\cipher\aes.h">
+    <ClInclude Include="src\cipher\aes.hpp">
       <Filter>Header Files\cipher</Filter>
     </ClInclude>
     <ClInclude Include="src\cipher\aes_win32.hpp">
       <Filter>Header Files\cipher</Filter>
     </ClInclude>
     <ClInclude Include="src\cipher\cipher.h">
+      <Filter>Header Files\cipher</Filter>
+    </ClInclude>
+    <ClInclude Include="src\cipher\utils.hpp">
       <Filter>Header Files\cipher</Filter>
     </ClInclude>
   </ItemGroup>
@@ -74,7 +77,7 @@
     <ClCompile Include="src\cipher\abnormal_RC4.cpp">
       <Filter>Source Files\cipher</Filter>
     </ClCompile>
-    <ClCompile Include="src\cipher\aes.cpp">
+    <ClCompile Include="src\cipher\aes_win32.cpp">
       <Filter>Source Files\cipher</Filter>
     </ClCompile>
   </ItemGroup>
