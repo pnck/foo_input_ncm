@@ -14,7 +14,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [windows-latest, macos-latest]
+        os: [windows-latest, macos-14]
         config: [Release, Debug]
         include:
           - os: windows-latest
@@ -24,34 +24,41 @@ jobs:
             arch: x64
           - os: windows-latest
             arch: x86
-          - os: macos-latest
+          - os: macos-14
             build-command: xcodebuild
             workspace: foo_input_ncm.xcworkspace
+            project: foo_input_ncm.xcodeproj
 
     steps:
       - name: Checkout
         uses: actions/checkout@v3
         with:
           submodules: recursive
-      
+
       - name: Download Foobar2000 SDK
         run: |
           curl -L https://www.foobar2000.org/files/SDK-2023-09-23.7z -o vendor/foobar2000_sdk.7z
           7z x vendor/foobar2000_sdk.7z -ovendor/sdk
           ls vendor/sdk
 
+      - name: (XCode) Switch XCode Version
+        run: |
+          sudo xcode-select --switch /Applications/Xcode_15.3.app
+          xcodebuild -version
+        if: matrix.os == 'macos-14'
+
       - name: (XCode) List Scheme
         run: |
           xcodebuild -list -workspace ${{ matrix.workspace }}
-          echo Build with scheme: foo_input_ncm ${{ matrix.config }}
-        if: matrix.os == 'macos-latest'
+          echo Build with scheme: foo_input_ncm-${{ matrix.config }}
+        if: matrix.os == 'macos-14'
 
       - name: (XCode) Build component bundle
         env:
-          scheme: foo_input_ncm ${{ matrix.config }}
+          scheme: foo_input_ncm-${{ matrix.config }}
         run: |
-          xcodebuild build -scheme "$scheme" -workspace ${{ matrix.workspace }}
-        if: matrix.os == 'macos-latest'
+          xcodebuild clean build -workspace ${{ matrix.workspace }} -scheme "$scheme" -configuration ${{ matrix.config }}
+        if: matrix.os == 'macos-14'
 
       - name: (MSBuild) Add MSBuild to PATH
         uses: microsoft/setup-msbuild@v1.0.2
@@ -64,7 +71,5 @@ jobs:
 
       - name: (MSBuild) Build component dll
         working-directory: ${{env.GITHUB_WORKSPACE}}
-        # Add additional options to the MSBuild command line here (like platform or verbosity level).
-        # See https://docs.microsoft.com/visualstudio/msbuild/msbuild-command-line-reference
         run: msbuild ${{ matrix.solution }} -property:"Configuration=${{ matrix.config }};Platform=${{ matrix.arch}}" -target:foo_input_ncm
         if: matrix.os == 'windows-latest'
