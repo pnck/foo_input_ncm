@@ -36,7 +36,7 @@ namespace fb2k_ncm
         void parse(uint16_t to_parse = 0xffff);
 
     private:
-        inline void throw_format_error();
+        inline void throw_format_error(const char *extra = nullptr);
 
     public:
         file_ptr source_;

@@ -5,18 +5,18 @@
       location = "group:foo_input_ncm.xcodeproj">
    </FileRef>
    <FileRef
-      location = "group:vendor/SDK/foobar2000/foobar2000_component_client/foobar2000_component_client.xcodeproj">
+      location = "group:vendor/sdk/foobar2000/shared/shared.xcodeproj">
    </FileRef>
    <FileRef
-      location = "group:vendor/SDK/foobar2000/SDK/foobar2000_SDK.xcodeproj">
+      location = "group:vendor/sdk/foobar2000/helpers/foobar2000_SDK_helpers.xcodeproj">
    </FileRef>
    <FileRef
-      location = "group:vendor/SDK/foobar2000/shared/shared.xcodeproj">
+      location = "group:vendor/sdk/foobar2000/foobar2000_component_client/foobar2000_component_client.xcodeproj">
    </FileRef>
    <FileRef
-      location = "group:vendor/SDK/foobar2000/helpers/foobar2000_SDK_helpers.xcodeproj">
+      location = "group:vendor/sdk/foobar2000/SDK/foobar2000_SDK.xcodeproj">
    </FileRef>
    <FileRef
-      location = "group:vendor/SDK/pfc/pfc.xcodeproj">
+      location = "group:vendor/sdk/pfc/pfc.xcodeproj">
    </FileRef>
 </Workspace>

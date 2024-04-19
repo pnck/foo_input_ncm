@@ -40,7 +40,7 @@ BraceWrapping: {
 }
 
 # The column limit
-ColumnLimit: '120'
+ColumnLimit: '140'
 
 # The number of columns to use for indentation.
 IndentWidth: '4'

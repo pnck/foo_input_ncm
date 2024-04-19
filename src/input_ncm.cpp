@@ -26,7 +26,7 @@ inline void fb2k_ncm::input_ncm::retag(const file_info &p_info, abort_callback &
     if (source_info_writer_.is_valid()) {
         source_info_writer_->set_info(0, p_info, p_abort);
     }
-    // throw exception_io_unsupported_format("Modification on ncm file not supported.");
+    throw exception_tagging_unsupported();
 }
 
 inline void fb2k_ncm::input_ncm::remove_tags(abort_callback &p_abort) {}
@@ -38,7 +38,8 @@ inline bool fb2k_ncm::input_ncm::decode_can_seek() {
 void input_ncm::open(service_ptr_t<file> p_filehint, const char *p_path, t_input_open_reason p_reason,
                      abort_callback &p_abort) {
     if (p_reason == t_input_open_reason::input_open_info_write) {
-        throw exception_io_unsupported_format("Modification on ncm file not supported.");
+        FB2K_console_print("Modification on ncm file is not supported.");
+        throw exception_io_unsupported_format();
     }
     if (!ncm_file_.is_valid()) {
         input_open_file_helper(p_filehint, p_path, p_reason, p_abort);
@@ -107,7 +108,8 @@ void input_ncm::open(service_ptr_t<file> p_filehint, const char *p_path, t_input
     }
 
     if (decoder_.is_empty()) {
-        throw exception_service_not_found("Failed to find proper audio decoder.");
+        FB2K_console_print("Failed to find proper audio decoder.");
+        throw exception_service_not_found();
     }
     input_ptr->open_for_info_read(source_info_reader_, ncm_file_, /*file_path_*/ "", p_abort);
     // TODO: support of retagging on audio content (with ncm wrapper and meta info not touched)

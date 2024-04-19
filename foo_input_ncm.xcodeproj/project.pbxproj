@@ -3,50 +3,58 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 54;
+	objectVersion = 63;
 	objects = {
 
 /* Begin PBXBuildFile section */
-		A3B7382B2BCCCF1A00DF7424 /* libfoobar2000_component_client.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A3B7382A2BCCCF1A00DF7424 /* libfoobar2000_component_client.a */; };
-		A3B7382D2BCCCF1A00DF7424 /* libfoobar2000_SDK.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A3B7382C2BCCCF1A00DF7424 /* libfoobar2000_SDK.a */; };
-		A3B7382F2BCCCF1A00DF7424 /* libfoobar2000_SDK_helpers.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A3B7382E2BCCCF1A00DF7424 /* libfoobar2000_SDK_helpers.a */; };
 		A3B738312BCCCF1A00DF7424 /* libpfc-Mac.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A3B738302BCCCF1A00DF7424 /* libpfc-Mac.a */; };
-		A3B738332BCCCF1A00DF7424 /* libshared.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A3B738322BCCCF1A00DF7424 /* libshared.a */; };
-		A3B738692BCCD1B100DF7424 /* abnormal_RC4.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A3B738522BCCD1B100DF7424 /* abnormal_RC4.cpp */; };
-		A3B7386A2BCCD1B100DF7424 /* aes.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A3B738542BCCD1B100DF7424 /* aes.cpp */; };
-		A3B7386B2BCCD1B100DF7424 /* .clang-format in Resources */ = {isa = PBXBuildFile; fileRef = A3B7385C2BCCD1B100DF7424 /* .clang-format */; };
-		A3B7386C2BCCD1B100DF7424 /* album_art_extractor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A3B7385D2BCCD1B100DF7424 /* album_art_extractor.cpp */; };
-		A3B7386F2BCCD1B100DF7424 /* input_ncm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A3B738612BCCD1B100DF7424 /* input_ncm.cpp */; };
-		A3B738702BCCD1B100DF7424 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A3B738632BCCD1B100DF7424 /* main.cpp */; };
-		A3B738712BCCD1B100DF7424 /* ncm_file.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A3B738642BCCD1B100DF7424 /* ncm_file.cpp */; };
-		A3B738722BCCD1B100DF7424 /* stdafx.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A3B738662BCCD1B100DF7424 /* stdafx.cpp */; };
+		A3B738742BCE313B00DF7424 /* libfoobar2000_component_client.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A3B738732BCE313B00DF7424 /* libfoobar2000_component_client.a */; };
+		A3B738762BCE313B00DF7424 /* libfoobar2000_SDK.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A3B738752BCE313B00DF7424 /* libfoobar2000_SDK.a */; };
+		A3B738972BCE497400DF7424 /* abnormal_RC4.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A3B738772BCE497400DF7424 /* abnormal_RC4.cpp */; };
+		A3B7389F2BCE497400DF7424 /* album_art_extractor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A3B7388C2BCE497400DF7424 /* album_art_extractor.cpp */; };
+		A3B738A12BCE497400DF7424 /* input_ncm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A3B7388F2BCE497400DF7424 /* input_ncm.cpp */; };
+		A3B738A22BCE497400DF7424 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A3B738912BCE497400DF7424 /* main.cpp */; };
+		A3B738A32BCE497400DF7424 /* ncm_file.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A3B738922BCE497400DF7424 /* ncm_file.cpp */; };
+		A3B738A42BCE497400DF7424 /* stdafx.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A3B738942BCE497400DF7424 /* stdafx.cpp */; };
+		A3B738AF2BD2279100DF7424 /* libfoobar2000_SDK_helpers.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A3B738AE2BD2279100DF7424 /* libfoobar2000_SDK_helpers.a */; };
+		A3B738B22BD22E9600DF7424 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A3B738AC2BD226CE00DF7424 /* Cocoa.framework */; };
+		A3B738B32BD2632D00DF7424 /* aes_macos.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A3B738AB2BD1B31300DF7424 /* aes_macos.cpp */; };
+		A3B738B42BD2632D00DF7424 /* aes_common.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A3B738A92BCFDDC800DF7424 /* aes_common.cpp */; };
+		A3B738B52BD2634E00DF7424 /* libshared.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A3B738B02BD22E7300DF7424 /* libshared.a */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		A3B7380C2BCCBC6700DF7424 /* foo_input_ncm.bundle */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = foo_input_ncm.bundle; sourceTree = BUILT_PRODUCTS_DIR; };
-		A3B7382A2BCCCF1A00DF7424 /* libfoobar2000_component_client.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; path = libfoobar2000_component_client.a; sourceTree = BUILT_PRODUCTS_DIR; };
-		A3B7382C2BCCCF1A00DF7424 /* libfoobar2000_SDK.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; path = libfoobar2000_SDK.a; sourceTree = BUILT_PRODUCTS_DIR; };
-		A3B7382E2BCCCF1A00DF7424 /* libfoobar2000_SDK_helpers.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; path = libfoobar2000_SDK_helpers.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		A3B7380C2BCCBC6700DF7424 /* foo_input_ncm.component */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = foo_input_ncm.component; sourceTree = BUILT_PRODUCTS_DIR; };
 		A3B738302BCCCF1A00DF7424 /* libpfc-Mac.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; path = "libpfc-Mac.a"; sourceTree = BUILT_PRODUCTS_DIR; };
-		A3B738322BCCCF1A00DF7424 /* libshared.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; path = libshared.a; sourceTree = BUILT_PRODUCTS_DIR; };
-		A3B738522BCCD1B100DF7424 /* abnormal_RC4.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = abnormal_RC4.cpp; sourceTree = "<group>"; };
-		A3B738532BCCD1B100DF7424 /* abnormal_RC4.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = abnormal_RC4.h; sourceTree = "<group>"; };
-		A3B738542BCCD1B100DF7424 /* aes.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = aes.cpp; sourceTree = "<group>"; };
-		A3B738552BCCD1B100DF7424 /* aes.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = aes.h; sourceTree = "<group>"; };
-		A3B738562BCCD1B100DF7424 /* cipher.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = cipher.h; sourceTree = "<group>"; };
-		A3B738572BCCD1B100DF7424 /* exception.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = exception.h; sourceTree = "<group>"; };
-		A3B738592BCCD1B100DF7424 /* define.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = define.h; sourceTree = "<group>"; };
-		A3B7385A2BCCD1B100DF7424 /* helpers.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = helpers.h; sourceTree = "<group>"; };
-		A3B7385C2BCCD1B100DF7424 /* .clang-format */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = ".clang-format"; sourceTree = "<group>"; };
-		A3B7385D2BCCD1B100DF7424 /* album_art_extractor.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = album_art_extractor.cpp; sourceTree = "<group>"; };
-		A3B7385E2BCCD1B100DF7424 /* album_art_extractor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = album_art_extractor.h; sourceTree = "<group>"; };
-		A3B738612BCCD1B100DF7424 /* input_ncm.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = input_ncm.cpp; sourceTree = "<group>"; };
-		A3B738622BCCD1B100DF7424 /* input_ncm.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = input_ncm.h; sourceTree = "<group>"; };
-		A3B738632BCCD1B100DF7424 /* main.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
-		A3B738642BCCD1B100DF7424 /* ncm_file.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ncm_file.cpp; sourceTree = "<group>"; };
-		A3B738652BCCD1B100DF7424 /* ncm_file.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ncm_file.h; sourceTree = "<group>"; };
-		A3B738662BCCD1B100DF7424 /* stdafx.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = stdafx.cpp; sourceTree = "<group>"; };
-		A3B738672BCCD1B100DF7424 /* stdafx.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = stdafx.h; sourceTree = "<group>"; };
+		A3B738732BCE313B00DF7424 /* libfoobar2000_component_client.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; path = libfoobar2000_component_client.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		A3B738752BCE313B00DF7424 /* libfoobar2000_SDK.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; path = libfoobar2000_SDK.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		A3B738772BCE497400DF7424 /* abnormal_RC4.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = abnormal_RC4.cpp; sourceTree = "<group>"; };
+		A3B738782BCE497400DF7424 /* abnormal_RC4.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = abnormal_RC4.hpp; sourceTree = "<group>"; };
+		A3B738792BCE497400DF7424 /* aes_win32.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = aes_win32.hpp; sourceTree = "<group>"; };
+		A3B7387C2BCE497400DF7424 /* cipher.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = cipher.h; sourceTree = "<group>"; };
+		A3B7387D2BCE497400DF7424 /* exception.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = exception.hpp; sourceTree = "<group>"; };
+		A3B7387F2BCE497400DF7424 /* consts.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = consts.hpp; sourceTree = "<group>"; };
+		A3B738802BCE497400DF7424 /* helpers.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = helpers.hpp; sourceTree = "<group>"; };
+		A3B738812BCE497400DF7424 /* platform.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = platform.hpp; sourceTree = "<group>"; };
+		A3B7388C2BCE497400DF7424 /* album_art_extractor.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = album_art_extractor.cpp; sourceTree = "<group>"; };
+		A3B7388D2BCE497400DF7424 /* album_art_extractor.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = album_art_extractor.hpp; sourceTree = "<group>"; };
+		A3B7388F2BCE497400DF7424 /* input_ncm.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = input_ncm.cpp; sourceTree = "<group>"; };
+		A3B738902BCE497400DF7424 /* input_ncm.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = input_ncm.hpp; sourceTree = "<group>"; };
+		A3B738912BCE497400DF7424 /* main.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
+		A3B738922BCE497400DF7424 /* ncm_file.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ncm_file.cpp; sourceTree = "<group>"; };
+		A3B738932BCE497400DF7424 /* ncm_file.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = ncm_file.hpp; sourceTree = "<group>"; };
+		A3B738942BCE497400DF7424 /* stdafx.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = stdafx.cpp; sourceTree = "<group>"; };
+		A3B738952BCE497400DF7424 /* stdafx.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = stdafx.h; sourceTree = "<group>"; };
+		A3B738A52BCFA9AA00DF7424 /* aes.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = aes.hpp; sourceTree = "<group>"; };
+		A3B738A62BCFA9AA00DF7424 /* utils.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = utils.hpp; sourceTree = "<group>"; };
+		A3B738A72BCFA9AA00DF7424 /* aes_win32.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = aes_win32.cpp; sourceTree = "<group>"; };
+		A3B738A82BCFA9AA00DF7424 /* aes_macos.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = aes_macos.hpp; sourceTree = "<group>"; };
+		A3B738A92BCFDDC800DF7424 /* aes_common.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = aes_common.cpp; sourceTree = "<group>"; };
+		A3B738AA2BCFDDC800DF7424 /* aes_common.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = aes_common.hpp; sourceTree = "<group>"; };
+		A3B738AB2BD1B31300DF7424 /* aes_macos.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = aes_macos.cpp; sourceTree = "<group>"; };
+		A3B738AC2BD226CE00DF7424 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
+		A3B738AE2BD2279100DF7424 /* libfoobar2000_SDK_helpers.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; path = libfoobar2000_SDK_helpers.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		A3B738B02BD22E7300DF7424 /* libshared.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; path = libshared.a; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -54,11 +62,12 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				A3B7382B2BCCCF1A00DF7424 /* libfoobar2000_component_client.a in Frameworks */,
-				A3B7382D2BCCCF1A00DF7424 /* libfoobar2000_SDK.a in Frameworks */,
-				A3B7382F2BCCCF1A00DF7424 /* libfoobar2000_SDK_helpers.a in Frameworks */,
+				A3B738B52BD2634E00DF7424 /* libshared.a in Frameworks */,
+				A3B738742BCE313B00DF7424 /* libfoobar2000_component_client.a in Frameworks */,
+				A3B738762BCE313B00DF7424 /* libfoobar2000_SDK.a in Frameworks */,
+				A3B738B22BD22E9600DF7424 /* Cocoa.framework in Frameworks */,
+				A3B738AF2BD2279100DF7424 /* libfoobar2000_SDK_helpers.a in Frameworks */,
 				A3B738312BCCCF1A00DF7424 /* libpfc-Mac.a in Frameworks */,
-				A3B738332BCCCF1A00DF7424 /* libshared.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -68,7 +77,7 @@
 		A3B738032BCCBC6700DF7424 = {
 			isa = PBXGroup;
 			children = (
-				A3B738682BCCD1B100DF7424 /* src */,
+				A3B738962BCE497400DF7424 /* src */,
 				A3B7380D2BCCBC6700DF7424 /* Products */,
 				A3B738292BCCCF1A00DF7424 /* Frameworks */,
 			);
@@ -77,7 +86,7 @@
 		A3B7380D2BCCBC6700DF7424 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				A3B7380C2BCCBC6700DF7424 /* foo_input_ncm.bundle */,
+				A3B7380C2BCCBC6700DF7424 /* foo_input_ncm.component */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -85,52 +94,59 @@
 		A3B738292BCCCF1A00DF7424 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				A3B7382A2BCCCF1A00DF7424 /* libfoobar2000_component_client.a */,
-				A3B7382C2BCCCF1A00DF7424 /* libfoobar2000_SDK.a */,
-				A3B7382E2BCCCF1A00DF7424 /* libfoobar2000_SDK_helpers.a */,
+				A3B738B02BD22E7300DF7424 /* libshared.a */,
+				A3B738AE2BD2279100DF7424 /* libfoobar2000_SDK_helpers.a */,
+				A3B738AC2BD226CE00DF7424 /* Cocoa.framework */,
+				A3B738732BCE313B00DF7424 /* libfoobar2000_component_client.a */,
+				A3B738752BCE313B00DF7424 /* libfoobar2000_SDK.a */,
 				A3B738302BCCCF1A00DF7424 /* libpfc-Mac.a */,
-				A3B738322BCCCF1A00DF7424 /* libshared.a */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
-		A3B738582BCCD1B100DF7424 /* cipher */ = {
+		A3B7387E2BCE497400DF7424 /* cipher */ = {
 			isa = PBXGroup;
 			children = (
-				A3B738522BCCD1B100DF7424 /* abnormal_RC4.cpp */,
-				A3B738532BCCD1B100DF7424 /* abnormal_RC4.h */,
-				A3B738542BCCD1B100DF7424 /* aes.cpp */,
-				A3B738552BCCD1B100DF7424 /* aes.h */,
-				A3B738562BCCD1B100DF7424 /* cipher.h */,
-				A3B738572BCCD1B100DF7424 /* exception.h */,
+				A3B738792BCE497400DF7424 /* aes_win32.hpp */,
+				A3B738A72BCFA9AA00DF7424 /* aes_win32.cpp */,
+				A3B738A82BCFA9AA00DF7424 /* aes_macos.hpp */,
+				A3B738AB2BD1B31300DF7424 /* aes_macos.cpp */,
+				A3B738AA2BCFDDC800DF7424 /* aes_common.hpp */,
+				A3B738A92BCFDDC800DF7424 /* aes_common.cpp */,
+				A3B738A52BCFA9AA00DF7424 /* aes.hpp */,
+				A3B738772BCE497400DF7424 /* abnormal_RC4.cpp */,
+				A3B738782BCE497400DF7424 /* abnormal_RC4.hpp */,
+				A3B7387D2BCE497400DF7424 /* exception.hpp */,
+				A3B738A62BCFA9AA00DF7424 /* utils.hpp */,
+				A3B7387C2BCE497400DF7424 /* cipher.h */,
 			);
 			path = cipher;
 			sourceTree = "<group>";
 		};
-		A3B7385B2BCCD1B100DF7424 /* common */ = {
+		A3B738822BCE497400DF7424 /* common */ = {
 			isa = PBXGroup;
 			children = (
-				A3B738592BCCD1B100DF7424 /* define.h */,
-				A3B7385A2BCCD1B100DF7424 /* helpers.h */,
+				A3B7387F2BCE497400DF7424 /* consts.hpp */,
+				A3B738802BCE497400DF7424 /* helpers.hpp */,
+				A3B738812BCE497400DF7424 /* platform.hpp */,
 			);
 			path = common;
 			sourceTree = "<group>";
 		};
-		A3B738682BCCD1B100DF7424 /* src */ = {
+		A3B738962BCE497400DF7424 /* src */ = {
 			isa = PBXGroup;
 			children = (
-				A3B738582BCCD1B100DF7424 /* cipher */,
-				A3B7385B2BCCD1B100DF7424 /* common */,
-				A3B7385C2BCCD1B100DF7424 /* .clang-format */,
-				A3B7385D2BCCD1B100DF7424 /* album_art_extractor.cpp */,
-				A3B7385E2BCCD1B100DF7424 /* album_art_extractor.h */,
-				A3B738612BCCD1B100DF7424 /* input_ncm.cpp */,
-				A3B738622BCCD1B100DF7424 /* input_ncm.h */,
-				A3B738632BCCD1B100DF7424 /* main.cpp */,
-				A3B738642BCCD1B100DF7424 /* ncm_file.cpp */,
-				A3B738652BCCD1B100DF7424 /* ncm_file.h */,
-				A3B738662BCCD1B100DF7424 /* stdafx.cpp */,
-				A3B738672BCCD1B100DF7424 /* stdafx.h */,
+				A3B7387E2BCE497400DF7424 /* cipher */,
+				A3B738822BCE497400DF7424 /* common */,
+				A3B7388C2BCE497400DF7424 /* album_art_extractor.cpp */,
+				A3B7388D2BCE497400DF7424 /* album_art_extractor.hpp */,
+				A3B7388F2BCE497400DF7424 /* input_ncm.cpp */,
+				A3B738902BCE497400DF7424 /* input_ncm.hpp */,
+				A3B738912BCE497400DF7424 /* main.cpp */,
+				A3B738922BCE497400DF7424 /* ncm_file.cpp */,
+				A3B738932BCE497400DF7424 /* ncm_file.hpp */,
+				A3B738942BCE497400DF7424 /* stdafx.cpp */,
+				A3B738952BCE497400DF7424 /* stdafx.h */,
 			);
 			path = src;
 			sourceTree = "<group>";
@@ -152,7 +168,7 @@
 			);
 			name = foo_input_ncm;
 			productName = foo_input_ncm;
-			productReference = A3B7380C2BCCBC6700DF7424 /* foo_input_ncm.bundle */;
+			productReference = A3B7380C2BCCBC6700DF7424 /* foo_input_ncm.component */;
 			productType = "com.apple.product-type.bundle";
 		};
 /* End PBXNativeTarget section */
@@ -170,7 +186,7 @@
 				};
 			};
 			buildConfigurationList = A3B738072BCCBC6700DF7424 /* Build configuration list for PBXProject "foo_input_ncm" */;
-			compatibilityVersion = "Xcode 12.0";
+			compatibilityVersion = "Xcode 14.0";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
@@ -178,6 +194,7 @@
 				Base,
 			);
 			mainGroup = A3B738032BCCBC6700DF7424;
+			minimizedProjectReferenceProxies = 1;
 			productRefGroup = A3B7380D2BCCBC6700DF7424 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -192,7 +209,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				A3B7386B2BCCD1B100DF7424 /* .clang-format in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -203,13 +219,14 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				A3B738712BCCD1B100DF7424 /* ncm_file.cpp in Sources */,
-				A3B738692BCCD1B100DF7424 /* abnormal_RC4.cpp in Sources */,
-				A3B7386A2BCCD1B100DF7424 /* aes.cpp in Sources */,
-				A3B7386C2BCCD1B100DF7424 /* album_art_extractor.cpp in Sources */,
-				A3B738702BCCD1B100DF7424 /* main.cpp in Sources */,
-				A3B738722BCCD1B100DF7424 /* stdafx.cpp in Sources */,
-				A3B7386F2BCCD1B100DF7424 /* input_ncm.cpp in Sources */,
+				A3B738B32BD2632D00DF7424 /* aes_macos.cpp in Sources */,
+				A3B738B42BD2632D00DF7424 /* aes_common.cpp in Sources */,
+				A3B738A32BCE497400DF7424 /* ncm_file.cpp in Sources */,
+				A3B738972BCE497400DF7424 /* abnormal_RC4.cpp in Sources */,
+				A3B7389F2BCE497400DF7424 /* album_art_extractor.cpp in Sources */,
+				A3B738A22BCE497400DF7424 /* main.cpp in Sources */,
+				A3B738A42BCE497400DF7424 /* stdafx.cpp in Sources */,
+				A3B738A12BCE497400DF7424 /* input_ncm.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -276,11 +293,16 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				HEADER_SEARCH_PATHS = "vendor/sdk/**";
+				HEADER_SEARCH_PATHS = (
+					"src/**",
+					vendor/,
+					vendor/sdk,
+					vendor/sdk/foobar2000,
+				);
 				INCLUDED_RECURSIVE_SEARCH_PATH_SUBDIRECTORIES = src;
-				LIBRARY_SEARCH_PATHS = "vendor/sdk/**";
+				LIBRARY_SEARCH_PATHS = "";
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MACOSX_DEPLOYMENT_TARGET = 10.13;
+				MACOSX_DEPLOYMENT_TARGET = 13.3;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -341,11 +363,16 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				HEADER_SEARCH_PATHS = "vendor/sdk/**";
+				HEADER_SEARCH_PATHS = (
+					"src/**",
+					vendor/,
+					vendor/sdk,
+					vendor/sdk/foobar2000,
+				);
 				INCLUDED_RECURSIVE_SEARCH_PATH_SUBDIRECTORIES = src;
-				LIBRARY_SEARCH_PATHS = "vendor/sdk/**";
+				LIBRARY_SEARCH_PATHS = "";
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MACOSX_DEPLOYMENT_TARGET = 10.13;
+				MACOSX_DEPLOYMENT_TARGET = 13.3;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -357,44 +384,51 @@
 		A3B738112BCCBC6700DF7424 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 8PPLPSV8X2;
 				FRAMEWORK_SEARCH_PATHS = "";
 				GCC_PREFIX_HEADER = src/stdafx.h;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				INFOPLIST_KEY_NSPrincipalClass = "";
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Bundles";
+				MACOSX_DEPLOYMENT_TARGET = 13.3;
 				MARKETING_VERSION = 0.3.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "pnck.foo-input-ncm";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				STRINGS_FILE_OUTPUT_ENCODING = "UTF-8";
 				SWIFT_EMIT_LOC_STRINGS = YES;
-				WRAPPER_EXTENSION = bundle;
+				WRAPPER_EXTENSION = component;
 			};
 			name = Debug;
 		};
 		A3B738122BCCBC6700DF7424 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 8PPLPSV8X2;
 				FRAMEWORK_SEARCH_PATHS = "";
 				GCC_PREFIX_HEADER = src/stdafx.h;
+				GCC_PREPROCESSOR_DEFINITIONS = "NDEBUG=1";
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				INFOPLIST_KEY_NSPrincipalClass = "";
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Bundles";
+				MACOSX_DEPLOYMENT_TARGET = 13.3;
 				MARKETING_VERSION = 0.3.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "pnck.foo-input-ncm";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				STRINGS_FILE_OUTPUT_ENCODING = "UTF-8";
 				SWIFT_EMIT_LOC_STRINGS = YES;
-				WRAPPER_EXTENSION = bundle;
+				WRAPPER_EXTENSION = component;
 			};
 			name = Release;
 		};

@@ -4,7 +4,7 @@
 using namespace fb2k_ncm::cipher::details;
 
 // validate buffers, ensure state flags
-void AES_context_win32::prepare() {
+void AES_context_win32::do_prepare() {
     is_done_ = false;
     status_ = STATUS_UNSUCCESSFUL;
     internal_buffer_.clear();
@@ -51,129 +51,37 @@ void AES_context_win32::prepare() {
     in_progress_ = true;
 }
 
-auto AES_context_win32::set_input(const std::vector<uint8_t> &input) -> decltype(*this) & {
-    input_buffer_ = &input;
-    input_buffer_size_ = input.size();
-    input_head_ = input.data();
-    return *this;
+size_t AES_context_win32::do_decrypt(const aes_chain_mode M, uint8_t *dst, const size_t cb_dst, const uint8_t *src, const size_t cb_src) {
+    auto h_key = std::visit([this](auto &&_) { return internal_get_key_handle(_); }, cipher_);
+    // M is refactored from template argument to function argument
+    // so a runtime lookup is needed to replace the compile-time constant, though it's really dumb
+    auto get_mapped_str = [M]() {
+        switch (M) {
+        case aes_chain_mode::ECB:
+            return BCRYPT_CHAIN_MODE_ECB;
+        case aes_chain_mode::CBC:
+            return BCRYPT_CHAIN_MODE_CBC;
+        default:
+            return BCRYPT_CHAIN_MODE_CBC;
+        }
+    };
+    auto mode_str = get_mapped_str();
+    if (!SUCCESS(status_ = BCryptSetProperty(h_key, BCRYPT_CHAINING_MODE, (PUCHAR)mode_str, sizeof(mode_str), 0))) {
+        throw cipher_error("BCryptSetProperty set chain mode failed", status_);
+    }
+    ULONG required_size = 0;
+    if (!SUCCESS(status_ = BCryptDecrypt(h_key, (PUCHAR)src, (ULONG)cb_src, NULL, NULL, 0, NULL, 0, &required_size,
+                                         0 /*BCRYPT_BLOCK_PADDING*/))) {
+        throw cipher_error("Cannot get required size", status_);
+    }
+    if (!SUCCESS(status_ = BCryptDecrypt(h_key, (PUCHAR)src, (ULONG)cb_src, NULL, NULL, 0, (PUCHAR)dst, (ULONG)cb_dst, &required_size,
+                                         0 /*BCRYPT_BLOCK_PADDING*/))) {
+        throw cipher_error("BCryptDecrypt failed", status_);
+    }
+    return required_size;
 }
 
-auto AES_context_win32::set_input(const uint8_t *input, size_t size) -> decltype(*this) & {
-    input_buffer_ = input;
-    input_buffer_size_ = size;
-    input_head_ = input;
-    return *this;
-}
-
-auto AES_context_win32::set_output(std::vector<uint8_t> &output) -> decltype(*this) & {
-    output_buffer_ = &output;
-    output_head_ = output.data();
-    output_buffer_size_ = 0;
-    return *this;
-}
-
-auto AES_context_win32::set_output(uint8_t *output, size_t size) -> decltype(*this) & {
-    output_buffer_ = output;
-    output_buffer_size_ = size;
-    output_head_ = output;
-    return *this;
-}
-
-auto AES_context_win32::set_chain_mode(aes_chain_mode mode) -> decltype(*this) & {
-    chain_mode_ = mode;
-    return *this;
-}
-
-auto AES_context_win32::decrypt_all() -> decltype(*this) & {
-    if (is_done_) {
-        throw cipher_error("Context finished", status_);
-    }
-    if (!in_progress_) {
-        prepare();
-    }
-    return decrypt_chunk(input_remain());
-}
-
-auto AES_context_win32::decrypt_chunk(size_t chunk_size) -> decltype(*this) & {
-    if (is_done_) {
-        throw cipher_error("Context finished", status_);
-    }
-    if (!in_progress_) {
-        prepare();
-    }
-    size_t original_output_buffer_size = output_buffer_size_;
-    if (std::holds_alternative<std::vector<uint8_t> *>(output_buffer_)) {
-        auto p = std::get<std::vector<uint8_t> *>(output_buffer_);
-        auto head_off = output_head_ - p->data();
-        p->resize(p->size() + aligned(chunk_size));
-        output_buffer_size_ = p->size();
-        // resize vector may realloc the space, thus record the offset of output head and reset head from it
-        output_head_ = p->data() + head_off;
-    }
-    if (auto remain = input_remain(); chunk_size > remain) {
-        chunk_size = remain;
-    }
-    size_t result_size = 0;
-    switch (chain_mode_) {
-    case aes_chain_mode::CBC:
-        result_size = do_decrypt<aes_chain_mode::CBC>(output_head_, output_remain(), input_head_, chunk_size);
-        break;
-    case aes_chain_mode::ECB:
-        result_size = do_decrypt<aes_chain_mode::ECB>(output_head_, output_remain(), input_head_, chunk_size);
-        break;
-    }
-    last_chunk_size_ = result_size;
-    if (std::holds_alternative<std::vector<uint8_t> *>(output_buffer_)) {
-        // shrink output vector to exact size
-        auto p = std::get<std::vector<uint8_t> *>(output_buffer_);
-        p->resize(original_output_buffer_size + result_size);
-        output_buffer_size_ = p->size();
-    }
-    input_head_ += chunk_size;
-    output_head_ += result_size;
-    if (!input_remain()) {
-        finish();
-    }
-    return *this;
-}
-
-auto AES_context_win32::decrypt_next() -> decltype(*this) & {
-    if (!in_progress_ || is_done_) {
-        throw cipher_error("Can't repeat decryption", status_);
-    }
-    return decrypt_chunk(last_chunk_size_);
-}
-
-void AES_context_win32::finish() {
-    finished_inputted_ = inputted_len();
-    finished_outputted_ = outputted_len();
-
-    is_done_ = true;
-    in_progress_ = false;
-
-    input_buffer_ = (const uint8_t *)nullptr;
-    input_head_ = nullptr;
-    input_buffer_size_ = 0;
-
-    output_buffer_ = &internal_buffer_;
-    output_head_ = nullptr;
-    output_buffer_size_ = 0;
-
-    last_chunk_size_ = 0;
-
+void AES_context_win32::do_finish() {
     // clear and release bound crypt object
-    std::visit([this](auto &_t) { _t = std::decay_t<decltype(_t)>(); }, cipher_);
-}
-
-// get internal buffer as results
-std::vector<uint8_t> AES_context_win32::copy_buffer_as_vector() {
-    auto tmp = std::move(internal_buffer_);
-    internal_buffer_.clear();
-    return tmp;
-}
-
-std::unique_ptr<uint8_t[]> AES_context_win32::copy_buffer_as_ptr() {
-    auto tmp = std::make_unique<uint8_t[]>(internal_buffer_.size());
-    std::copy(internal_buffer_.begin(), internal_buffer_.end(), tmp.get());
-    return tmp;
+    std::visit([this](auto &&_t) { _t = std::decay_t<decltype(_t)>(); }, cipher_);
 }

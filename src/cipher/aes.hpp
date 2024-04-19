@@ -11,6 +11,7 @@ namespace fb2k_ncm::cipher
     // interfaces
     template <typename IMPL>
     concept AES_context_functions = requires(IMPL impl) {
+        // chain ops
         { impl.set_input(std::declval<const std::vector<uint8_t> &>()) } -> std::same_as<decltype(impl) &>;
         { impl.set_input(std::declval<const uint8_t *>(), std::declval<size_t>()) } -> std::same_as<decltype(impl) &>;
         { impl.set_output(std::declval<std::vector<uint8_t> &>()) } -> std::same_as<decltype(impl) &>;
@@ -19,7 +20,16 @@ namespace fb2k_ncm::cipher
         { impl.decrypt_all() } -> std::same_as<decltype(impl) &>;
         { impl.decrypt_chunk(std::declval<size_t>()) } -> std::same_as<decltype(impl) &>;
         { impl.decrypt_next() } -> std::same_as<decltype(impl) &>;
-        { impl.finish() } -> std::same_as<void>;
+        { impl.finish() };
+        // properties
+        { impl.chain_mode() } -> std::same_as<aes_chain_mode>;
+        { impl.key_len() } -> std::same_as<size_t>;
+        { impl.key_bit_len() } -> std::same_as<size_t>;
+        { impl.is_done() } -> std::same_as<bool>;
+        { impl.inputted_len() } -> std::same_as<size_t>;
+        { impl.input_remain() } -> std::same_as<size_t>;
+        { impl.outputted_len() } -> std::same_as<size_t>;
+        { impl.output_remain() } -> std::same_as<size_t>;
     };
 
     template <typename IMPL>
@@ -54,27 +64,29 @@ namespace fb2k_ncm::cipher
     // helper functions
     template <size_t KEYLEN>
     [[nodiscard]] inline AES_context make_AES_context_with_key(const uint8_t (&key)[KEYLEN]) {
-        return AES_context(AES<KEYLEN>(key));
+        AES<KEYLEN> c;
+        c.load_key(key);
+        return AES_context(std::move(c));
     }
     [[nodiscard]] inline AES_context make_AES_context_with_key(const uint8_t *key, size_t key_len) {
         switch (key_len) {
         case 16: {
-            AES128 _t;
-            _t.load_key(std::vector<uint8_t>{key, key + key_len});
-            return AES_context(std::move(_t));
+            AES128 c;
+            c.load_key(std::vector<uint8_t>(key, key + 16));
+            return AES_context(std::move(c));
         }
         case 24: {
-            AES192 _t;
-            _t.load_key(std::vector<uint8_t>{key, key + key_len});
-            return AES_context(std::move(_t));
+            AES192 c;
+            c.load_key(std::vector<uint8_t>(key, key + 24));
+            return AES_context(std::move(c));
         }
         case 32: {
-            AES256 _t;
-            _t.load_key(std::vector<uint8_t>{key, key + key_len});
-            return AES_context(std::move(_t));
+            AES256 c;
+            c.load_key(std::vector<uint8_t>(key, key + 32));
+            return AES_context(std::move(c));
         }
         default:
-            throw cipher_error("Invalid key length", STATUS_UNSUCCESSFUL);
+            throw cipher_error("Invalid key size", KEYSIZE_ERROR);
         }
     }
     [[nodiscard]] inline AES_context make_AES_context_with_key(const std::vector<uint8_t> &key) {

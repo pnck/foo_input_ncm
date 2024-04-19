@@ -1,18 +1,15 @@
 #pragma once
 
-#ifndef _WIN32
-#include <array>
-
-struct GUID {
-    uint32_t Data1;
-    uint16_t Data2;
-    uint16_t Data3;
-    std::array<uint8_t, 8> Data4;
-};
+#if defined WIN32 && !defined _WIN32
+#define _WIN32
 #endif
 
 #ifdef _WIN32
-
+#ifndef NT_SUCCESS
+#define SUCCESS(Status) (((STATUS)(Status)) >= 0)
+#else
+#define SUCCESS(Status) NT_SUCCESS(Status)
+#endif
 
 #define WIN32_NO_STATUS
 #include <Windows.h>
@@ -23,11 +20,19 @@ struct GUID {
 
 typedef NTSTATUS STATUS;
 typedef DWORD DWORD;
+#define KEYSIZE_ERROR STATUS_INVALID_PARAMETER
+#define COMMON_ERROR STATUS_UNSUCCESSFUL
 
-#else
-typedef uint32_t STATUS;
+#elif defined __APPLE__
+#include <CommonCrypto/CommonCryptoError.h>
+#define SUCCESS(Status) ((Status) == kCCSuccess)
+
+typedef CCCryptorStatus STATUS;
 typedef uint32_t DWORD;
 inline auto GetLastError() {
     return errno;
 }
+#define KEYSIZE_ERROR kCCKeySizeError
+#define COMMON_ERROR kCCUnspecifiedError
+
 #endif

@@ -6,12 +6,6 @@
 #include <sstream>
 #include <iomanip>
 
-#ifndef NT_SUCCESS
-#define SUCCESS(Status) (((STATUS)(Status)) >= 0)
-#else
-#define SUCCESS(Status) NT_SUCCESS(Status)
-#endif
-
 namespace fb2k_ncm::cipher
 {
     class cipher_error : public std::runtime_error {
