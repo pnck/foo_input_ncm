@@ -1,0 +1,90 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{f1870d6a-9607-4239-a25d-7dfcac517001}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{a31699a3-8999-43b7-a335-d89ce8708fbd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\common">
+      <UniqueIdentifier>{33e20df0-a5a0-435f-b477-b753900e8b0d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\cipher">
+      <UniqueIdentifier>{c0ca5425-3392-48e1-8e0e-53acb0e7755f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\cipher">
+      <UniqueIdentifier>{8fbe3d95-ce5d-45fc-9c23-7924f6a1effd}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\album_art_extractor.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\input_ncm.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ncm_file.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\stdafx.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\common\consts.hpp">
+      <Filter>Header Files\common</Filter>
+    </ClInclude>
+    <ClInclude Include="src\common\helpers.hpp">
+      <Filter>Header Files\common</Filter>
+    </ClInclude>
+    <ClInclude Include="src\common\platform.hpp">
+      <Filter>Header Files\common</Filter>
+    </ClInclude>
+    <ClInclude Include="src\cipher\exception.hpp">
+      <Filter>Header Files\cipher</Filter>
+    </ClInclude>
+    <ClInclude Include="src\cipher\abnormal_RC4.hpp">
+      <Filter>Header Files\cipher</Filter>
+    </ClInclude>
+    <ClInclude Include="src\cipher\aes.hpp">
+      <Filter>Header Files\cipher</Filter>
+    </ClInclude>
+    <ClInclude Include="src\cipher\aes_win32.hpp">
+      <Filter>Header Files\cipher</Filter>
+    </ClInclude>
+    <ClInclude Include="src\cipher\cipher.h">
+      <Filter>Header Files\cipher</Filter>
+    </ClInclude>
+    <ClInclude Include="src\cipher\utils.hpp">
+      <Filter>Header Files\cipher</Filter>
+    </ClInclude>
+    <ClInclude Include="src\cipher\aes_common.hpp">
+      <Filter>Header Files\cipher</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\album_art_extractor.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\input_ncm.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\main.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ncm_file.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\stdafx.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\cipher\abnormal_RC4.cpp">
+      <Filter>Source Files\cipher</Filter>
+    </ClCompile>
+    <ClCompile Include="src\cipher\aes_win32.cpp">
+      <Filter>Source Files\cipher</Filter>
+    </ClCompile>
+    <ClCompile Include="src\cipher\aes_common.cpp">
+      <Filter>Source Files\cipher</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>

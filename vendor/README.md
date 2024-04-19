@@ -15,3 +15,5 @@ $ tree -d -L 2
 8 directories
 
 ```
+
+**Current version does not require `wtl` anymore.**
