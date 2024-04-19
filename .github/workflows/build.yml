@@ -12,6 +12,7 @@ jobs:
     name: Build on all platform/architectures
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
         os: [windows-latest, macos-latest]
         config: [Release, Debug]
@@ -30,6 +31,14 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
+        with:
+          submodules: recursive
+      
+      - name: Download Foobar2000 SDK
+        run: |
+          curl -L https://www.foobar2000.org/files/SDK-2023-09-23.7z -o vendor/foobar2000_sdk.7z
+          7z x vendor/foobar2000_sdk.7z -ovendor/sdk
+          ls vendor/sdk
 
       - name: (XCode) List Scheme
         run: |
@@ -41,7 +50,7 @@ jobs:
         env:
           scheme: foo_input_ncm ${{ matrix.config }}
         run: |
-          xcodebuild clean build -scheme "$scheme" -workspace ${{ matrix.workspace }} | xcpretty
+          xcodebuild build -scheme "$scheme" -workspace ${{ matrix.workspace }}
         if: matrix.os == 'macos-latest'
 
       - name: (MSBuild) Add MSBuild to PATH
