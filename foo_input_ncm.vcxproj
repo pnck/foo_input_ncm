@@ -166,6 +166,7 @@
     <ClInclude Include="src\album_art_extractor.hpp" />
     <ClInclude Include="src\cipher\abnormal_RC4.hpp" />
     <ClInclude Include="src\cipher\aes.hpp" />
+    <ClInclude Include="src\cipher\aes_common.hpp" />
     <ClInclude Include="src\cipher\aes_win32.hpp" />
     <ClInclude Include="src\cipher\cipher.h" />
     <ClInclude Include="src\cipher\exception.hpp" />
@@ -180,6 +181,7 @@
   <ItemGroup>
     <ClCompile Include="src\album_art_extractor.cpp" />
     <ClCompile Include="src\cipher\abnormal_RC4.cpp" />
+    <ClCompile Include="src\cipher\aes_common.cpp" />
     <ClCompile Include="src\cipher\aes_win32.cpp" />
     <ClCompile Include="src\input_ncm.cpp" />
     <ClCompile Include="src\main.cpp" />

@@ -57,6 +57,9 @@
     <ClInclude Include="src\cipher\utils.hpp">
       <Filter>Header Files\cipher</Filter>
     </ClInclude>
+    <ClInclude Include="src\cipher\aes_common.hpp">
+      <Filter>Header Files\cipher</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\album_art_extractor.cpp">
@@ -78,6 +81,9 @@
       <Filter>Source Files\cipher</Filter>
     </ClCompile>
     <ClCompile Include="src\cipher\aes_win32.cpp">
+      <Filter>Source Files\cipher</Filter>
+    </ClCompile>
+    <ClCompile Include="src\cipher\aes_common.cpp">
       <Filter>Source Files\cipher</Filter>
     </ClCompile>
   </ItemGroup>

@@ -1,5 +1,5 @@
-#include "pch.h"
-#include "cipher/aes.h"
+#include "stdafx.h"
+#include "cipher/aes.hpp"
 #include <memory>
 
 using namespace fb2k_ncm::cipher;
@@ -9,11 +9,12 @@ protected:
     BCRYPT_ALG_HANDLE h_crypt_ = NULL;
     BCRYPT_KEY_HANDLE h_key_ = NULL;
     // make a random key so that we can test over it
-    uint8_t random_plain_key_[32] = { 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1 };
+    uint8_t random_plain_key_[32] = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
     // for correctness comparation
-    uint8_t random_plain_data_[2048] = { 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1 };
-    uint8_t encrypted_data_ecb_[sizeof(random_plain_data_) + AES_BLOCKSIZE/*padding block*/];
-    uint8_t encrypted_data_cbc_[sizeof(random_plain_data_) + AES_BLOCKSIZE/*padding block*/];
+    uint8_t random_plain_data_[2048] = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
+    uint8_t encrypted_data_ecb_[sizeof(random_plain_data_) + AES_BLOCKSIZE /*padding block*/];
+    uint8_t encrypted_data_cbc_[sizeof(random_plain_data_) + AES_BLOCKSIZE /*padding block*/];
+
 protected:
     void SetUp() override {
         // check bcrypt api available
@@ -29,23 +30,31 @@ protected:
         ASSERT_EQ(16, cbOutput);
         // ecb encrypt/decrypt
         ASSERT_GE(BCryptSetProperty(h_key_, BCRYPT_CHAINING_MODE, (PUCHAR)BCRYPT_CHAIN_MODE_ECB, sizeof(BCRYPT_CHAIN_MODE_ECB), 0), 0);
-        ASSERT_GE(BCryptEncrypt(h_key_, (PUCHAR)random_plain_data_, sizeof(random_plain_data_), NULL, NULL, 0, encrypted_data_ecb_, sizeof(encrypted_data_ecb_), &cbResult, BCRYPT_BLOCK_PADDING), 0);
+        ASSERT_GE(BCryptEncrypt(h_key_, (PUCHAR)random_plain_data_, sizeof(random_plain_data_), NULL, NULL, 0, encrypted_data_ecb_,
+                                sizeof(encrypted_data_ecb_), &cbResult, BCRYPT_BLOCK_PADDING),
+                  0);
         ASSERT_EQ(sizeof(encrypted_data_ecb_), cbResult);
         auto _p = std::make_unique<uint8_t[]>(sizeof(encrypted_data_ecb_));
-        ASSERT_GE(BCryptDecrypt(h_key_, (PUCHAR)encrypted_data_ecb_, sizeof(encrypted_data_ecb_), NULL, NULL, 0, (PUCHAR)_p.get(), sizeof(encrypted_data_ecb_), &cbResult, BCRYPT_BLOCK_PADDING), 0);
+        ASSERT_GE(BCryptDecrypt(h_key_, (PUCHAR)encrypted_data_ecb_, sizeof(encrypted_data_ecb_), NULL, NULL, 0, (PUCHAR)_p.get(),
+                                sizeof(encrypted_data_ecb_), &cbResult, BCRYPT_BLOCK_PADDING),
+                  0);
         ASSERT_EQ(sizeof(random_plain_data_), cbResult);
         ASSERT_EQ(memcmp(random_plain_data_, _p.get(), sizeof(random_plain_data_)), 0);
         // cbc encrypt/decrypt
         ASSERT_GE(BCryptSetProperty(h_key_, BCRYPT_CHAINING_MODE, (PUCHAR)BCRYPT_CHAIN_MODE_CBC, sizeof(BCRYPT_CHAIN_MODE_CBC), 0), 0);
-        ASSERT_GE(BCryptEncrypt(h_key_, (PUCHAR)random_plain_data_, sizeof(random_plain_data_), NULL, NULL, 0, encrypted_data_cbc_, sizeof(encrypted_data_cbc_), &cbResult, BCRYPT_BLOCK_PADDING), 0);
+        ASSERT_GE(BCryptEncrypt(h_key_, (PUCHAR)random_plain_data_, sizeof(random_plain_data_), NULL, NULL, 0, encrypted_data_cbc_,
+                                sizeof(encrypted_data_cbc_), &cbResult, BCRYPT_BLOCK_PADDING),
+                  0);
         ASSERT_EQ(sizeof(encrypted_data_cbc_), cbResult);
         ASSERT_NE(memcmp(encrypted_data_ecb_, encrypted_data_cbc_, sizeof(encrypted_data_cbc_)), 0);
         _p = std::make_unique<uint8_t[]>(sizeof(encrypted_data_cbc_));
-        ASSERT_GE(BCryptDecrypt(h_key_, (PUCHAR)encrypted_data_cbc_, sizeof(encrypted_data_cbc_), NULL, NULL, 0, (PUCHAR)_p.get(), sizeof(encrypted_data_cbc_), &cbResult, BCRYPT_BLOCK_PADDING), 0);
+        ASSERT_GE(BCryptDecrypt(h_key_, (PUCHAR)encrypted_data_cbc_, sizeof(encrypted_data_cbc_), NULL, NULL, 0, (PUCHAR)_p.get(),
+                                sizeof(encrypted_data_cbc_), &cbResult, BCRYPT_BLOCK_PADDING),
+                  0);
         ASSERT_EQ(sizeof(random_plain_data_), cbResult);
         ASSERT_EQ(memcmp(random_plain_data_, _p.get(), sizeof(random_plain_data_)), 0);
     }
-    void TearDown()override {
+    void TearDown() override {
         if (h_key_) {
             BCryptDestroyKey(h_key_);
         }
@@ -65,7 +74,7 @@ TEST_F(AESFuncitoalityTest, AESClasses) {
     try {
         auto context = make_AES_context_with_key(random_plain_key_);
         ASSERT_FALSE(context.is_done());
-        //ASSERT_EQ(context.buffer_capacity(), 0);
+        // ASSERT_EQ(context.buffer_capacity(), 0);
         ASSERT_EQ(context.key_bit_len(), sizeof(random_plain_key_) * 8);
         ASSERT_EQ(context.set_chain_mode(aes_chain_mode::CBC).chain_mode(), aes_chain_mode::CBC);
         ASSERT_EQ(context.set_chain_mode(aes_chain_mode::ECB).chain_mode(), aes_chain_mode::ECB);
@@ -93,7 +102,6 @@ TEST_F(AESFuncitoalityTest, AESClasses) {
         ASSERT_EQ(buffer.size(), 64);
         ASSERT_EQ(memcmp(buffer.data(), random_plain_data_ + 128, 64), 0);
 
-
         // decrypt_all()
         ASSERT_EQ(context.input_remain(), sizeof(encrypted_data_ecb_) - 3 * 64);
         ASSERT_TRUE(context.decrypt_all().is_done());
@@ -103,11 +111,9 @@ TEST_F(AESFuncitoalityTest, AESClasses) {
         ASSERT_EQ(guess_padding(buffer.data() + buffer.size()), AES_BLOCKSIZE);
         ASSERT_EQ(context.inputted_len(), sizeof(encrypted_data_ecb_));
         ASSERT_EQ(context.outputted_len(), sizeof(encrypted_data_ecb_) - 128);
-    }
-    catch (const fb2k_ncm::cipher::cipher_error & e) {
+    } catch (const fb2k_ncm::cipher::cipher_error &e) {
         FAIL() << e.what();
     }
-
 }
 
 TEST_F(AESFuncitoalityTest, AES128AllIn1) {
@@ -125,30 +131,29 @@ TEST_F(AESFuncitoalityTest, AES128AllIn1) {
     try {
         auto context = make_AES_context_with_key(random_plain_key_, 16);
         ASSERT_TRUE(context.set_chain_mode(aes_chain_mode::ECB)
-            .set_input(data.get() + data_size, data_size)
-            .decrypt_chunk(16)
-            .decrypt_all()
-            .is_done());
+                        .set_input(data.get() + data_size, data_size)
+                        .decrypt_chunk(16)
+                        .decrypt_all()
+                        .is_done());
         auto _p = context.copy_buffer_as_ptr();
         ASSERT_EQ(memcmp(_p.get(), data.get(), data_size), 0);
 
         context = make_AES_context_with_key(random_plain_key_, 16);
         auto _v = std::vector(data.get() + data_size * 2, data.get() + data_size * 3);
-        ASSERT_TRUE(context.set_input(_v)
-            // in-place
-            .set_output(_v.data(), _v.size())
-            .set_chain_mode(aes_chain_mode::CBC)
-            .decrypt_all()
-            .is_done());
+        ASSERT_TRUE(context
+                        .set_input(_v)
+                        // in-place
+                        .set_output(_v.data(), _v.size())
+                        .set_chain_mode(aes_chain_mode::CBC)
+                        .decrypt_all()
+                        .is_done());
         ASSERT_EQ(memcmp(data.get(), _v.data(), data_size), 0);
 
-    }
-    catch (const fb2k_ncm::cipher::cipher_error & e) {
+    } catch (const fb2k_ncm::cipher::cipher_error &e) {
         FAIL() << e.what();
     }
     BCryptDestroyKey(h_key);
 }
-
 
 TEST_F(AESFuncitoalityTest, AES192AllIn1) {
     BCRYPT_KEY_HANDLE h_key;
@@ -165,31 +170,29 @@ TEST_F(AESFuncitoalityTest, AES192AllIn1) {
     try {
         auto context = make_AES_context_with_key(random_plain_key_, 24);
         ASSERT_TRUE(context.set_chain_mode(aes_chain_mode::ECB)
-            .set_input(data.get() + data_size, data_size)
-            .decrypt_chunk(16)
-            .decrypt_all()
-            .is_done());
+                        .set_input(data.get() + data_size, data_size)
+                        .decrypt_chunk(16)
+                        .decrypt_all()
+                        .is_done());
         auto _p = context.copy_buffer_as_ptr();
         ASSERT_EQ(memcmp(_p.get(), data.get(), data_size), 0);
 
         context = make_AES_context_with_key(random_plain_key_, 24);
         auto _v = std::vector(data.get() + data_size * 2, data.get() + data_size * 3);
-        ASSERT_TRUE(context.set_input(_v)
-            // in-place
-            .set_output(_v.data(), _v.size())
-            .set_chain_mode(aes_chain_mode::CBC)
-            .decrypt_all()
-            .is_done());
+        ASSERT_TRUE(context
+                        .set_input(_v)
+                        // in-place
+                        .set_output(_v.data(), _v.size())
+                        .set_chain_mode(aes_chain_mode::CBC)
+                        .decrypt_all()
+                        .is_done());
         ASSERT_EQ(memcmp(data.get(), _v.data(), data_size), 0);
 
-    }
-    catch (const fb2k_ncm::cipher::cipher_error & e) {
+    } catch (const fb2k_ncm::cipher::cipher_error &e) {
         FAIL() << e.what();
     }
     BCryptDestroyKey(h_key);
-
 }
-
 
 TEST_F(AESFuncitoalityTest, AES256AllIn1) {
     BCRYPT_KEY_HANDLE h_key;
@@ -206,31 +209,29 @@ TEST_F(AESFuncitoalityTest, AES256AllIn1) {
     try {
         auto context = make_AES_context_with_key(random_plain_key_, 32);
         ASSERT_TRUE(context.set_chain_mode(aes_chain_mode::ECB)
-            .set_input(data.get() + data_size, data_size)
-            .decrypt_chunk(16)
-            .decrypt_all()
-            .is_done());
+                        .set_input(data.get() + data_size, data_size)
+                        .decrypt_chunk(16)
+                        .decrypt_all()
+                        .is_done());
         auto _p = context.copy_buffer_as_ptr();
         ASSERT_EQ(memcmp(_p.get(), data.get(), data_size), 0);
 
         context = make_AES_context_with_key(random_plain_key_, 32);
         auto _v = std::vector(data.get() + data_size * 2, data.get() + data_size * 3);
-        ASSERT_TRUE(context.set_input(_v)
-            // in-place
-            .set_output(_v.data(), _v.size())
-            .set_chain_mode(aes_chain_mode::CBC)
-            .decrypt_all()
-            .is_done());
+        ASSERT_TRUE(context
+                        .set_input(_v)
+                        // in-place
+                        .set_output(_v.data(), _v.size())
+                        .set_chain_mode(aes_chain_mode::CBC)
+                        .decrypt_all()
+                        .is_done());
         ASSERT_EQ(memcmp(data.get(), _v.data(), data_size), 0);
 
-    }
-    catch (const fb2k_ncm::cipher::cipher_error & e) {
+    } catch (const fb2k_ncm::cipher::cipher_error &e) {
         FAIL() << e.what();
     }
     BCryptDestroyKey(h_key);
-
 }
-
 
 TEST_F(AESFuncitoalityTest, Falses) {
     std::vector<uint8_t> invalid_key(10);
@@ -238,31 +239,27 @@ TEST_F(AESFuncitoalityTest, Falses) {
         AES128 _t;
         _t.load_key(invalid_key);
         FAIL() << "Not throwing exception.";
-    }
-    catch (const fb2k_ncm::cipher::cipher_error & e) {
+    } catch (const fb2k_ncm::cipher::cipher_error &e) {
         SUCCEED() << e.what();
     }
     try {
         AES192 _t;
         _t.load_key(invalid_key);
         FAIL() << "Not throwing exception.";
-    }
-    catch (const fb2k_ncm::cipher::cipher_error & e) {
+    } catch (const fb2k_ncm::cipher::cipher_error &e) {
         SUCCEED() << e.what();
     }
     try {
         AES256 _t;
         _t.load_key(invalid_key);
         FAIL() << "Not throwing exception.";
-    }
-    catch (const fb2k_ncm::cipher::cipher_error & e) {
+    } catch (const fb2k_ncm::cipher::cipher_error &e) {
         SUCCEED() << e.what();
     }
     try {
         auto _c = make_AES_context_with_key(invalid_key);
         FAIL() << "Not throwing exception.";
-    }
-    catch (const fb2k_ncm::cipher::cipher_error & e) {
+    } catch (const fb2k_ncm::cipher::cipher_error &e) {
         SUCCEED() << e.what();
     }
 }
