@@ -21,7 +21,21 @@
 		A3B738B32BD2632D00DF7424 /* aes_macos.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A3B738AB2BD1B31300DF7424 /* aes_macos.cpp */; };
 		A3B738B42BD2632D00DF7424 /* aes_common.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A3B738A92BCFDDC800DF7424 /* aes_common.cpp */; };
 		A3B738B52BD2634E00DF7424 /* libshared.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A3B738B02BD22E7300DF7424 /* libshared.a */; };
+		A3B738B82BD2F35800DF7424 /* foo_input_ncm.component in CopyFiles */ = {isa = PBXBuildFile; fileRef = A3B7380C2BCCBC6700DF7424 /* foo_input_ncm.component */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 /* End PBXBuildFile section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		A3B738B72BD2F32700DF7424 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "${PROJECT_DIR}/dist/mac";
+			dstSubfolderSpec = 0;
+			files = (
+				A3B738B82BD2F35800DF7424 /* foo_input_ncm.component in CopyFiles */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		A3B7380C2BCCBC6700DF7424 /* foo_input_ncm.component */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = foo_input_ncm.component; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -161,6 +175,7 @@
 				A3B738082BCCBC6700DF7424 /* Sources */,
 				A3B738092BCCBC6700DF7424 /* Frameworks */,
 				A3B7380A2BCCBC6700DF7424 /* Resources */,
+				A3B738B72BD2F32700DF7424 /* CopyFiles */,
 			);
 			buildRules = (
 			);
@@ -302,7 +317,7 @@
 				INCLUDED_RECURSIVE_SEARCH_PATH_SUBDIRECTORIES = src;
 				LIBRARY_SEARCH_PATHS = "";
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MACOSX_DEPLOYMENT_TARGET = 13.3;
+				MACOSX_DEPLOYMENT_TARGET = 10.13;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -372,7 +387,7 @@
 				INCLUDED_RECURSIVE_SEARCH_PATH_SUBDIRECTORIES = src;
 				LIBRARY_SEARCH_PATHS = "";
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MACOSX_DEPLOYMENT_TARGET = 13.3;
+				MACOSX_DEPLOYMENT_TARGET = 10.13;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -395,7 +410,7 @@
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				INFOPLIST_KEY_NSPrincipalClass = "";
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Bundles";
-				MACOSX_DEPLOYMENT_TARGET = 13.3;
+				MACOSX_DEPLOYMENT_TARGET = 10.13;
 				MARKETING_VERSION = 0.3.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "pnck.foo-input-ncm";
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -421,7 +436,7 @@
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				INFOPLIST_KEY_NSPrincipalClass = "";
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Bundles";
-				MACOSX_DEPLOYMENT_TARGET = 13.3;
+				MACOSX_DEPLOYMENT_TARGET = 10.13;
 				MARKETING_VERSION = 0.3.0;
 				ONLY_ACTIVE_ARCH = NO;
 				PRODUCT_BUNDLE_IDENTIFIER = "pnck.foo-input-ncm";

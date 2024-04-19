@@ -121,6 +121,10 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>$(CoreLibraryDependencies);%(AdditionalDependencies);vendor/sdk/foobar2000/shared/shared-$(Platform).lib</AdditionalDependencies>
     </Link>
+    <PostBuildEvent>
+      <Message>copy built files</Message>
+      <Command>copy $(TargetPath)  $(ProjectDir)dist\</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -161,6 +165,11 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>$(CoreLibraryDependencies);%(AdditionalDependencies);vendor/sdk/foobar2000/shared/shared-$(Platform).lib</AdditionalDependencies>
     </Link>
+    <PostBuildEvent>
+      <Message>copy built files</Message>
+      <Command>mkdir $(ProjectDir)dist\$(Platform)
+copy $(TargetPath)  $(ProjectDir)dist\$(Platform)\</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="src\album_art_extractor.hpp" />

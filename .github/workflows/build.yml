@@ -1,0 +1,61 @@
+name: Build All
+
+on:
+  workflow_dispatch:
+  push:
+    branches: ['main', 'dev', 'dev/*']
+  pull_request:
+    branches: ['main']
+
+jobs:
+  matrix-build:
+    name: Build on all platform/architectures
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [windows-latest, macos-latest]
+        config: [Release, Debug]
+        include:
+          - os: windows-latest
+            build-command: msbuild
+            solution: foo_input_ncm.sln
+          - os: windows-latest
+            arch: x64
+          - os: windows-latest
+            arch: x86
+          - os: macos-latest
+            build-command: xcodebuild
+            workspace: foo_input_ncm.xcworkspace
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: (XCode) List Scheme
+        run: |
+          xcodebuild -list -workspace ${{ matrix.workspace }}
+          echo Build with scheme: foo_input_ncm ${{ matrix.config }}
+        if: matrix.os == 'macos-latest'
+
+      - name: (XCode) Build component bundle
+        env:
+          scheme: foo_input_ncm ${{ matrix.config }}
+        run: |
+          xcodebuild clean build -scheme "$scheme" -workspace ${{ matrix.workspace }} | xcpretty
+        if: matrix.os == 'macos-latest'
+
+      - name: (MSBuild) Add MSBuild to PATH
+        uses: microsoft/setup-msbuild@v1.0.2
+        if: matrix.os == 'windows-latest'
+
+      - name: (MSBuild) Restore NuGet packages
+        working-directory: ${{env.GITHUB_WORKSPACE}}
+        run: nuget restore ${{ matrix.solution }}
+        if: matrix.os == 'windows-latest'
+
+      - name: (MSBuild) Build component dll
+        working-directory: ${{env.GITHUB_WORKSPACE}}
+        # Add additional options to the MSBuild command line here (like platform or verbosity level).
+        # See https://docs.microsoft.com/visualstudio/msbuild/msbuild-command-line-reference
+        run: msbuild ${{ matrix.solution }} -property:"Configuration=${{ matrix.config }};Platform=${{ matrix.arch}}" -target:foo_input_ncm
+        if: matrix.os == 'windows-latest'
