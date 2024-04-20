@@ -9,7 +9,7 @@ on:
 
 jobs:
   matrix-build:
-    name: Build on all platform/architectures
+    name: Matrix Build
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -31,7 +31,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           submodules: recursive
 
@@ -61,7 +61,7 @@ jobs:
         if: matrix.os == 'macos-14'
 
       - name: (MSBuild) Add MSBuild to PATH
-        uses: microsoft/setup-msbuild@v1.0.2
+        uses: microsoft/setup-msbuild@v2
         if: matrix.os == 'windows-latest'
 
       - name: (MSBuild) Restore NuGet packages
@@ -95,25 +95,27 @@ jobs:
         with:
           pattern: dist-windows-*-Release
 
+      - name: Touch Directories
+        run: |
+          mkdir -p win32/x64
+          mkdir -p macos/mac
+        working-directory: ${{ github.workspace }}
+
       - name: Pack component - Windows
         run: |
-          ls -lah .
-          mkdir -p win32/x64
-          cp dist-windows-latest-x86-Release/foo_input_ncm.dll win32/
-          cp -r dist-windows-latest-x64-Release/x64 win32/
-          zip -r foo_input_ncm-win32.fb2k-component win32/*
-        working-directory: ${{ github.workspace }}
+          cp ${{ github.workspace }}/dist-windows-latest-x86-Release/foo_input_ncm.dll .
+          cp -r ${{ github.workspace }}/dist-windows-latest-x64-Release/x64 .
+          zip -r ${{ github.workspace }}/foo_input_ncm-win32.fb2k-component ./*
+        working-directory: ${{ github.workspace }}/win32
 
       - name: Pack component - MacOS
         run: |
-          ls -lah .
-          mkdir -p macos/mac
-          cp -r dist-macos-14-x64-Release/mac macos/
-          zip -r foo_input_ncm-macos.fb2k-component macos/*
-        working-directory: ${{ github.workspace }}
+          cp -r ${{ github.workspace }}/dist-macos-14-x64-Release/mac .
+          zip -r ${{ github.workspace }}/foo_input_ncm-macos.fb2k-component ./*
+        working-directory: ${{ github.workspace }}/macos
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: packages
-          path: '*.fb2k-component'
+          path: '${{ github.workspace }}/*.fb2k-component'
