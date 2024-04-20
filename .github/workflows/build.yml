@@ -1,0 +1,207 @@
+name: Build All
+
+on:
+  push:
+    branches: ['main', 'dev', 'dev/*']
+    tags:
+      - 'v*.*.*'
+
+  pull_request:
+    branches: ['main']
+  
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: Test (Windows)
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        config: [Release, Debug]
+        arch: [x64, x86]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Download Foobar2000 SDK
+        run: |
+          curl -L https://www.foobar2000.org/files/SDK-2023-09-23.7z -o vendor/foobar2000_sdk.7z
+          7z x vendor/foobar2000_sdk.7z -ovendor/sdk
+          ls vendor/sdk
+
+      - name: Setup Msbuild
+        uses: microsoft/setup-msbuild@v2
+
+      - name: Restore NuGet packages
+        working-directory: ${{ github.workspace }}
+        run: nuget restore foo_input_ncm.sln
+
+      - name: Build Test Executable
+        working-directory: ${{ github.workspace }}
+        run: |
+          msbuild foo_input_ncm.sln -property:"Configuration=${{ matrix.config }};Platform=${{ matrix.arch}}" -target:foo_input_ncm_tests
+
+      - name: Run Tests (x86)
+        working-directory: ${{ github.workspace }}/${{ matrix.config }}
+        run: .\foo_input_ncm_tests.exe
+        if: matrix.arch == 'x86'
+
+      - name: Run Tests (x64)
+        working-directory: ${{ github.workspace }}/${{ matrix.arch }}/${{ matrix.config }}
+        run: .\foo_input_ncm_tests.exe
+        if: matrix.arch == 'x64'
+
+  matrix-build:
+    name: Matrix Build
+    runs-on: ${{ matrix.os }}
+    needs: [test]
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, macos-14]
+        config: [Release, Debug]
+        arch: [x64, x86]
+        exclude:
+          - os: macos-14
+            arch: x86
+        include:
+          - os: windows-latest
+            build-command: msbuild
+            solution: foo_input_ncm.sln
+          - os: macos-14
+            build-command: xcodebuild
+            workspace: foo_input_ncm.xcworkspace
+            project: foo_input_ncm.xcodeproj
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-tags: true
+          fetch-depth: 0
+
+      - name: Versioning
+        run: |
+          TAG=$(git describe --tags)
+          VERSION=${TAG:1}
+          echo "#define CURRENT_VERSION $VERSION" >> src/stdafx.h
+          echo "----------------------------"
+          cat src/stdafx.h
+        shell: bash
+        working-directory: ${{ github.workspace }}
+
+      - name: Download Foobar2000 SDK
+        run: |
+          curl -L https://www.foobar2000.org/files/SDK-2023-09-23.7z -o vendor/foobar2000_sdk.7z
+          7z x vendor/foobar2000_sdk.7z -ovendor/sdk
+          ls vendor/sdk
+
+      - name: (XCode) Switch XCode Version
+        run: |
+          sudo xcode-select --switch /Applications/Xcode_15.3.app
+          xcodebuild -version
+        if: matrix.os == 'macos-14'
+
+      - name: (XCode) List Scheme
+        run: |
+          xcodebuild -list -workspace ${{ matrix.workspace }}
+          echo Build with scheme: foo_input_ncm-${{ matrix.config }}
+        if: matrix.os == 'macos-14'
+
+      - name: (XCode) Build component bundle
+        env:
+          scheme: foo_input_ncm-${{ matrix.config }}
+        run: |
+          xcodebuild clean build -workspace ${{ matrix.workspace }} -scheme "$scheme" -configuration ${{ matrix.config }}
+        if: matrix.os == 'macos-14'
+
+      - name: (MSBuild) Setup MSBuild
+        uses: microsoft/setup-msbuild@v2
+        if: matrix.os == 'windows-latest'
+
+      - name: (MSBuild) Restore NuGet packages
+        working-directory: ${{ github.workspace }}
+        run: nuget restore ${{ matrix.solution }}
+        if: matrix.os == 'windows-latest'
+
+      - name: (MSBuild) Build component dll
+        working-directory: ${{ github.workspace }}
+        run: msbuild ${{ matrix.solution }} -property:"Configuration=${{ matrix.config }};Platform=${{ matrix.arch}}" -target:foo_input_ncm
+        if: matrix.os == 'windows-latest'
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist-${{ matrix.os }}-${{ matrix.arch }}-${{ matrix.config }}
+          path: ${{ github.workspace }}/dist
+          if-no-files-found: error
+  pack:
+    name: Make fb2k-componet package
+    runs-on: ubuntu-latest
+    needs: matrix-build
+    steps:
+      - name: Download Artifacts (MacOS bundle)
+        uses: actions/download-artifact@v4
+        with:
+          pattern: dist-macos-*-Release
+
+      - name: Download Artifacts (Windows dll)
+        uses: actions/download-artifact@v4
+        with:
+          pattern: dist-windows-*-Release
+
+      - name: Touch Directories
+        run: |
+          mkdir -p win32/x64
+          mkdir -p macos/mac
+        working-directory: ${{ github.workspace }}
+
+      - name: Pack component - Windows
+        run: |
+          cp ${{ github.workspace }}/dist-windows-latest-x86-Release/foo_input_ncm.dll .
+          cp -r ${{ github.workspace }}/dist-windows-latest-x64-Release/x64 .
+          zip -r ${{ github.workspace }}/foo_input_ncm-win32.fb2k-component ./*
+        working-directory: ${{ github.workspace }}/win32
+
+      - name: Pack component - MacOS
+        run: |
+          cp -r ${{ github.workspace }}/dist-macos-14-x64-Release/mac .
+          zip -r ${{ github.workspace }}/foo_input_ncm-macos.fb2k-component ./*
+        working-directory: ${{ github.workspace }}/macos
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: packages
+          path: '${{ github.workspace }}/*.fb2k-component'
+
+  release:
+    name: Publish Release
+    runs-on: ubuntu-latest
+    needs: pack
+    if: (github.event_name == 'workflow_dispatch') || (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v'))
+    steps:
+      - name: Download Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: packages
+      - name: Determine Release type
+        id: check
+        run: |
+          if [[ "${{ github.ref }}" =~ ^refs/tags/v ]]; then
+            echo "::set-output name=prerelease::false"
+          else
+            echo echo "::set-output name=prerelease::true"
+          fi
+      - name: Upload to Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ github.workspace }}/*.fb2k-component
+          make_latest: true
+          generate_release_notes: true
+          prerelease: ${{ steps.check.outputs.prerelease }}

@@ -21,7 +21,21 @@
 		A3B738B32BD2632D00DF7424 /* aes_macos.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A3B738AB2BD1B31300DF7424 /* aes_macos.cpp */; };
 		A3B738B42BD2632D00DF7424 /* aes_common.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A3B738A92BCFDDC800DF7424 /* aes_common.cpp */; };
 		A3B738B52BD2634E00DF7424 /* libshared.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A3B738B02BD22E7300DF7424 /* libshared.a */; };
+		A3B738B82BD2F35800DF7424 /* foo_input_ncm.component in CopyFiles */ = {isa = PBXBuildFile; fileRef = A3B7380C2BCCBC6700DF7424 /* foo_input_ncm.component */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 /* End PBXBuildFile section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		A3B738B72BD2F32700DF7424 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "${PROJECT_DIR}/dist/mac";
+			dstSubfolderSpec = 0;
+			files = (
+				A3B738B82BD2F35800DF7424 /* foo_input_ncm.component in CopyFiles */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		A3B7380C2BCCBC6700DF7424 /* foo_input_ncm.component */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = foo_input_ncm.component; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -161,6 +175,7 @@
 				A3B738082BCCBC6700DF7424 /* Sources */,
 				A3B738092BCCBC6700DF7424 /* Frameworks */,
 				A3B7380A2BCCBC6700DF7424 /* Resources */,
+				A3B738B72BD2F32700DF7424 /* CopyFiles */,
 			);
 			buildRules = (
 			);
@@ -186,7 +201,7 @@
 				};
 			};
 			buildConfigurationList = A3B738072BCCBC6700DF7424 /* Build configuration list for PBXProject "foo_input_ncm" */;
-			compatibilityVersion = "Xcode 14.0";
+			compatibilityVersion = "Xcode 15.3";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
@@ -305,7 +320,6 @@
 				MACOSX_DEPLOYMENT_TARGET = 13.3;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
-				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = macosx;
 				STRIP_INSTALLED_PRODUCT = NO;
 				VERSIONING_SYSTEM = "apple-generic";
@@ -375,7 +389,7 @@
 				MACOSX_DEPLOYMENT_TARGET = 13.3;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
-				ONLY_ACTIVE_ARCH = YES;
+				ONLY_ACTIVE_ARCH = NO;
 				SDKROOT = macosx;
 				VERSIONING_SYSTEM = "apple-generic";
 			};
@@ -384,11 +398,11 @@
 		A3B738112BCCBC6700DF7424 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 8PPLPSV8X2;
+				DEVELOPMENT_TEAM = "";
 				FRAMEWORK_SEARCH_PATHS = "";
 				GCC_PREFIX_HEADER = src/stdafx.h;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -409,11 +423,11 @@
 		A3B738122BCCBC6700DF7424 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 8PPLPSV8X2;
+				DEVELOPMENT_TEAM = "";
 				FRAMEWORK_SEARCH_PATHS = "";
 				GCC_PREFIX_HEADER = src/stdafx.h;
 				GCC_PREPROCESSOR_DEFINITIONS = "NDEBUG=1";
@@ -423,6 +437,7 @@
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Bundles";
 				MACOSX_DEPLOYMENT_TARGET = 13.3;
 				MARKETING_VERSION = 0.3.0;
+				ONLY_ACTIVE_ARCH = NO;
 				PRODUCT_BUNDLE_IDENTIFIER = "pnck.foo-input-ncm";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
