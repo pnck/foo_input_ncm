@@ -8,9 +8,52 @@ on:
     branches: ['main']
 
 jobs:
+  test:
+    name: Test (Windows)
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        config: [Release, Debug]
+        arch: [x64, x86]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Download Foobar2000 SDK
+        run: |
+          curl -L https://www.foobar2000.org/files/SDK-2023-09-23.7z -o vendor/foobar2000_sdk.7z
+          7z x vendor/foobar2000_sdk.7z -ovendor/sdk
+          ls vendor/sdk
+
+      - name: Setup Msbuild
+        uses: microsoft/setup-msbuild@v2
+
+      - name: Restore NuGet packages
+        working-directory: ${{ github.workspace }}
+        run: nuget restore foo_input_ncm.sln
+
+      - name: Build Test Executable
+        working-directory: ${{ github.workspace }}
+        run: |
+          msbuild foo_input_ncm.sln -property:"Configuration=${{ matrix.config }};Platform=${{ matrix.arch}}" -target:foo_input_ncm_tests
+
+      - name: Run Tests (x86)
+        working-directory: ${{ github.workspace }}/${{ matrix.config }}
+        run: .\foo_input_ncm_tests.exe
+        if: matrix.arch == 'x86'
+
+      - name: Run Tests (x64)
+        working-directory: ${{ github.workspace }}/${{ matrix.arch }}/${{ matrix.config }}
+        run: .\foo_input_ncm_tests.exe
+        if: matrix.arch == 'x64'
+
   matrix-build:
     name: Matrix Build
     runs-on: ${{ matrix.os }}
+    needs: [test]
     strategy:
       fail-fast: false
       matrix:
@@ -60,7 +103,7 @@ jobs:
           xcodebuild clean build -workspace ${{ matrix.workspace }} -scheme "$scheme" -configuration ${{ matrix.config }}
         if: matrix.os == 'macos-14'
 
-      - name: (MSBuild) Add MSBuild to PATH
+      - name: (MSBuild) Setup MSBuild
         uses: microsoft/setup-msbuild@v2
         if: matrix.os == 'windows-latest'
 
