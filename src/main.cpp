@@ -4,7 +4,7 @@
     changelog
 
 Version 0.3.0
-- port to support multiple platform / architecture (x64, ARM, MacOS)
+- port to support multiple platform / architecture (x64/x86 Windows, Intel/ARM MacOS)
 
 Version 0.2.0
 - decode and play any ncm file
@@ -24,7 +24,15 @@ Version 0.0.1
 
 **/
 
-DECLARE_COMPONENT_VERSION("Ncm Loader", "0.3.0", "Load and play Netease Music specific file format (ncm) directly.\n");
+#ifdef CURRENT_VERSION
+#define VER_STR(X) #X
+#define EXTRACT(X) VER_STR(X)
+#define NCM_LOADER_VERSION EXTRACT(CURRENT_VERSION)
+#else
+#define NCM_LOADER_VERSION "0.3.1"
+#endif
+
+DECLARE_COMPONENT_VERSION("Ncm Loader", NCM_LOADER_VERSION, "Load and play Netease Music specific file format (ncm) directly.\n");
 
 // This will prevent users from renaming your component around (important for proper troubleshooter behaviors) or
 // loading multiple instances of it.
