@@ -16,14 +16,14 @@ jobs:
       matrix:
         os: [windows-latest, macos-14]
         config: [Release, Debug]
+        arch: [x64, x86]
+        exclude:
+          - os: macos-14
+            arch: x86
         include:
           - os: windows-latest
             build-command: msbuild
             solution: foo_input_ncm.sln
-          - os: windows-latest
-            arch: x64
-          - os: windows-latest
-            arch: x86
           - os: macos-14
             build-command: xcodebuild
             workspace: foo_input_ncm.xcworkspace
@@ -65,11 +65,55 @@ jobs:
         if: matrix.os == 'windows-latest'
 
       - name: (MSBuild) Restore NuGet packages
-        working-directory: ${{env.GITHUB_WORKSPACE}}
+        working-directory: ${{ github.workspace }}
         run: nuget restore ${{ matrix.solution }}
         if: matrix.os == 'windows-latest'
 
       - name: (MSBuild) Build component dll
-        working-directory: ${{env.GITHUB_WORKSPACE}}
+        working-directory: ${{ github.workspace }}
         run: msbuild ${{ matrix.solution }} -property:"Configuration=${{ matrix.config }};Platform=${{ matrix.arch}}" -target:foo_input_ncm
         if: matrix.os == 'windows-latest'
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist-${{ matrix.os }}-${{ matrix.arch }}-${{ matrix.config }}
+          path: ${{ github.workspace }}/dist
+          if-no-files-found: error
+  pack:
+    name: Make fb2k-componet package
+    runs-on: ubuntu-latest
+    needs: matrix-build
+    steps:
+      - name: Download Artifacts (MacOS bundle)
+        uses: actions/download-artifact@v4
+        with:
+          pattern: dist-macos-*-Release
+
+      - name: Download Artifacts (Windows dll)
+        uses: actions/download-artifact@v4
+        with:
+          pattern: dist-windows-*-Release
+
+      - name: Pack component - Windows
+        run: |
+          ls -lah .
+          mkdir -p win32/x64
+          cp dist-windows-latest-x86-Release/foo_input_ncm.dll win32/
+          cp -r dist-windows-latest-x64-Release/x64 win32/
+          zip -r foo_input_ncm-win32.fb2k-component win32/*
+        working-directory: ${{ github.workspace }}
+
+      - name: Pack component - MacOS
+        run: |
+          ls -lah .
+          mkdir -p macos/mac
+          cp -r dist-macos-14-x64-Release/mac macos/
+          zip -r foo_input_ncm-macos.fb2k-component macos/*
+        working-directory: ${{ github.workspace }}
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: packages
+          path: '*.fb2k-component'
