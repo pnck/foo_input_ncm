@@ -13,3 +13,8 @@
 
 #include "common/consts.hpp"
 
+#if (defined _DEBUG) || (defined DEBUG)
+#define DEBUG_LOG(...) FB2K_console_print(__VA_ARGS__)
+#else
+#define DEBUG_LOG(...)
+#endif

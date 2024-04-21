@@ -4,6 +4,8 @@
 #include "cipher/cipher.h"
 #include "rapidjson/include/rapidjson/document.h"
 
+#include <fstream>
+
 namespace fb2k_ncm
 {
 
@@ -29,27 +31,36 @@ namespace fb2k_ncm
         t_filetimestamp get_timestamp(abort_callback &p_abort) override;
 
     public:
-        explicit ncm_file(file_ptr &source, const char *path)
-            : source_(source), this_path_(path), meta_info(meta_json_), image_data(image_data_) {}
-        const char *path() const { return this_path_; }
+        explicit ncm_file(const char *path) : this_path_(path) {
+            filesystem::g_open(source_, path, filesystem::open_mode_read, fb2k::noAbort);
+        }
         void ensure_audio_offset();
         void parse(uint16_t to_parse = 0xffff);
 
+        inline auto path() const { return this_path_; }
+        inline bool meta_parsed() const { return !meta_str_.empty(); }
+        inline bool audio_parsed() const { return !parsed_file_.audio_content_offset; }
+
     private:
         inline void throw_format_error(const char *extra = nullptr);
+        inline void throw_format_error(std::string extra);
 
     public:
-        file_ptr source_;
-        const rapidjson::Document &meta_info;
-        const std::vector<uint8_t> &image_data;
+        inline auto &meta_info() { return meta_json_; }
+        inline auto &image_data() { return image_data_; }
 
     private:
         const char *this_path_;
         ncm_file_st parsed_file_;
+        file_ptr source_;
+        // std::unique_ptr<std::basic_fstream<char>> source_;
+        // using fschar = decltype(source_)::element_type::char_type;
+
         std::string meta_str_;
         rapidjson::Document meta_json_;
         cipher::abnormal_RC4 rc4_decrypter_;
         std::vector<uint8_t> image_data_;
+        std::vector<uint8_t> cache_;
     };
 
 } // namespace fb2k_ncm
