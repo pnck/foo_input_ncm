@@ -113,7 +113,7 @@ void ncm_file::parse(uint16_t to_parse /* = 0xff*/) {
 
     auto _seek_guard_ = std::unique_ptr<void, std::function<void(void *)>>(nullptr, [this, p = source_->get_position(p_abort)](void *) {
         // RAII guard, will seek back when function returns
-        source_->seek_ex(p, file::t_seek_mode::seek_from_beginning, p_abort);
+        source_->seek_ex(p, file::t_seek_mode::seek_from_beginning, fb2k::noAbort);
     });
 
     source_->seek_ex(0, file::t_seek_mode::seek_from_beginning, p_abort);

@@ -15,7 +15,7 @@ namespace fb2k_ncm
         input_ncm() = default;
         virtual ~input_ncm(){};
 
-        FOOGUIDDECL static constexpr GUID class_guid = guid_candidates[0];
+        static constexpr GUID class_guid = guid_candidates[0];
 
     public:
         void open(service_ptr_t<file> p_filehint, const char *p_path, t_input_open_reason p_reason, abort_callback &p_abort);
