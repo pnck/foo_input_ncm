@@ -242,17 +242,27 @@ bool ncm_file::save_raw_audio(const char *to_dir, abort_callback &p_abort) {
     output.add_filename(pfc::string_filename(this->path()));
     output += ext();
 
-    file_ptr file_raw;
-    filesystem::g_open_write_new(file_raw, output, p_abort);
-
     auto _seek_guard_ = make_seek_guard(p_abort);
 
-    if (auto size = file_v2::g_transfer(this, file_raw.get_ptr(), get_size(p_abort), p_abort); size == get_size(p_abort)) {
-        DEBUG_LOG("[DEBUG] Extraction done: ", output);
-        path_raw_saved_to_ = output;
-        return true;
-    }
+    // NOTE:
+    // If g_open_write_new() opens a file that is being played, the playback will be broken, and the file content will be truncated.
+    // This is somewhat by design because I found it impossible to check if a file is opened in sharing mode,
+    // and it's inefficient to check if the file is being played for every extraction, which usually happens rarely.
+    // Besides, people usually won't choose the directory containing the songs currently being played as the output directory.
+    // To avoid overwriting isn't a good idea either, because the user may want to extract more files to the same directory again,
+    // and they likely won't unselect the existing files accurately.
+    try {
+        file_ptr file_raw;
+        filesystem::g_open_write_new(file_raw, output, p_abort);
 
+        if (auto size = file_v2::g_transfer(this, file_raw.get_ptr(), get_size(p_abort), p_abort); size == get_size(p_abort)) {
+            DEBUG_LOG("[DEBUG] Extraction done: ", output);
+            path_raw_saved_to_ = output;
+            return true;
+        }
+    } catch (const pfc::exception &e) {
+        FB2K_console_print("[ERR] ", e.what(), " (", output, ") ");
+    }
     DEBUG_LOG("[DEBUG] Extraction failed: ", path());
     path_raw_saved_to_.clear();
     return false;

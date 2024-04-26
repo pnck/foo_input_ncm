@@ -36,14 +36,14 @@ namespace fb2k_ncm::ui
                 bool all_done = true;
                 for (auto &f : ncm_files) {
                     DEBUG_LOG("[DEBUG] Extracting audio content from ", f->path());
-                    if (auto ok = f->save_raw_audio(selected_path->c_str()); !ok) {
+                    if (auto ok = f->save_raw_audio(selected_path->c_str(), fb2k::mainAborter()); !ok) {
                         DEBUG_LOG("[DEBUG] Failed to extract from ", f->path());
                         all_done = false;
                     }
                 }
                 if (all_done) {
                     // call CPS function
-                    if (continuation(std::forward<std::decay_t<decltype(ncm_files)>>(ncm_files))) {
+                    if (auto ok = (!continuation) || continuation(std::forward<std::decay_t<decltype(ncm_files)>>(ncm_files)); ok) {
                         popup_message::g_show("All audio content extracted successfully", "Extraction completed",
                                               popup_message ::icon_information);
                         return;
@@ -176,7 +176,7 @@ bool context_menu::context_get_display(unsigned p_index, metadb_handle_list_cref
         count = std::accumulate(p_data.begin(), p_data.end(), 0, filter);
     }
     if (p_index == CMD_EXTRACT) {
-        p_out << "Extract raw audio content of " << count << " ncm file";
+        p_out << "Extract RAW audio content of " << count << " ncm file";
         if (count != 1) {
             p_out << "s";
         }
