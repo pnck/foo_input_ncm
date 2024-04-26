@@ -29,6 +29,13 @@ namespace fb2k_ncm
             NCM_PARSE_AUDIO = 0b100,
         };
 
+        struct ncm_file_parsed_st : public ncm_file_st {
+            // ...
+            // end of original file structure
+            uint64_t album_image_offset;
+            uint64_t audio_content_offset;
+        };
+
     public:
         t_size read(void *p_buffer, t_size p_bytes, abort_callback &p_abort);
         void write(const void *p_buffer, t_size p_bytes, abort_callback &p_abort);
@@ -65,7 +72,7 @@ namespace fb2k_ncm
 
     private:
         const char *this_path_ = nullptr;
-        ncm_file_st parsed_file_{};
+        ncm_file_parsed_st parsed_file_{};
         file_ptr source_;
         // std::unique_ptr<std::basic_fstream<char>> source_;
         // using fschar = decltype(source_)::element_type::char_type;

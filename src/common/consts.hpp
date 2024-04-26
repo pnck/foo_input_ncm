@@ -36,9 +36,6 @@ namespace fb2k_ncm
         uint32_t album_image_size[2]; // there are 2 exactly same field
         const uint8_t *album_image;
         const uint8_t *audio_content;
-        // end of original file structure
-        uint64_t album_image_offset;
-        uint64_t audio_content_offset;
     };
 
     constexpr int max_thread_count = 8; // recommended number of threads (hint)

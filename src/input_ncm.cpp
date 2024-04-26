@@ -41,24 +41,25 @@ void input_ncm::open(foobar2000_io::file::ptr p_filehint, const char *p_path, t_
         FB2K_console_print("[ERR] Modification on a ncm file is not supported.");
         throw exception_io_unsupported_format();
     }
-
-    if (!ncm_file_.is_valid() && p_filehint.is_empty()) { // open from filesystem
-        DEBUG_LOG("[DEBUG] input_ncm::open (", p_path, ") for reason ", p_reason);
-        ncm_file_ = fb2k::service_new<ncm_file>(p_path);
-        if (!ncm_file_.is_valid()) {
-            FB2K_console_print("[ERR] Failed to open file: ", p_path);
-            throw exception_io_not_found();
-        }
-    } else if (p_filehint.is_valid()) { // attach an opened ncm_file
-        if (p_filehint->cast(ncm_file_)) {
-            DEBUG_LOG("[DEBUG] input_ncm::open (", ncm_file_->path(), ") for reason ", p_reason, " (from file hint)");
+    if (ncm_file_.is_empty()) {
+        if (std::string checked_path(p_path); checked_path.length()) { // open from filesystem
+            DEBUG_LOG("[DEBUG] input_ncm::open (", p_path, ") for reason ", p_reason);
+            ncm_file_ = fb2k::service_new<ncm_file>(p_path);
+            if (!ncm_file_.is_valid()) {
+                FB2K_console_print("[ERR] Failed to open file: ", p_path);
+                throw exception_io_not_found();
+            }
+        } else if (p_filehint.is_valid()) { // attach an opened ncm_file
+            if (p_filehint->cast(ncm_file_)) {
+                DEBUG_LOG("[DEBUG] input_ncm::open (", ncm_file_->path(), ") for reason ", p_reason, " (from file hint)");
+            } else {
+                DEBUG_LOG("[DEBUG] input_ncm::open cast from file_ptr failed, reason=", p_reason);
+                throw exception_io_unsupported_feature();
+            }
         } else {
-            DEBUG_LOG("[DEBUG] input_ncm::open cast froom file_ptr failed");
-            throw exception_io_denied();
+            FB2K_console_print("[ERR] Open ncm file failed (invalid file hint).");
+            throw exception_io_no_handler_for_path();
         }
-    } else {
-        FB2K_console_print("[ERR] Open ncm file failed (invalid file hint).");
-        throw exception_io_unsupported_format();
     }
 
     // walk through the file structure
