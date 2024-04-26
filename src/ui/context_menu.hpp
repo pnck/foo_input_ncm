@@ -34,7 +34,8 @@ namespace fb2k_ncm::ui
     private:
         using name_t = std::string;
         using descript_t = name_t;
-        constexpr static auto get_menu_item_(uint32_t index) -> std::optional<std::tuple<GUID, name_t, descript_t>>;
+        using maybe_item_t = std::optional<std::tuple<GUID, name_t, descript_t>>;
+        constexpr static maybe_item_t get_menu_item_(uint32_t index);
     };
 
 } // namespace fb2k_ncm::ui

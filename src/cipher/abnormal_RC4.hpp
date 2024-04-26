@@ -31,6 +31,7 @@ namespace fb2k_ncm::cipher
         // c++20 ranges version, returns a transform view
         template <std::ranges::range R>
         auto transform(const R &r) {
+            // TODO: consider parallel implementation (std::execution::par)
             return r | std::views::all | std::views::transform([tf = get_transform(), this](auto b) { return tf(b, counter_++); });
         }
 

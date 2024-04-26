@@ -260,8 +260,10 @@ bool ncm_file::save_raw_audio(const char *to_dir, abort_callback &p_abort) {
             path_raw_saved_to_ = output;
             return true;
         }
+    } catch (const exception_aborted &) {
+        DEBUG_LOG("[DEBUG] Aborted: ", path());
     } catch (const pfc::exception &e) {
-        FB2K_console_print("[ERR] ", e.what(), " (", output, ") ");
+        FB2K_console_print("[ERR] ", e.what(), " (writing ", output, ") ");
     }
     DEBUG_LOG("[DEBUG] Extraction failed: ", path());
     path_raw_saved_to_.clear();

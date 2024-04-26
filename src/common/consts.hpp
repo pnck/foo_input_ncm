@@ -25,7 +25,6 @@ namespace fb2k_ncm
                                                 0x35, 0x6B, 0x49, 0x6E, 0x62, 0x61, 0x78, 0x57}; // the AES key used to encrypt its RC4 seed
     constexpr uint8_t ncm_meta_aes_key[] = {0x23, 0x31, 0x34, 0x6C, 0x6A, 0x6B, 0x5F, 0x21,
                                             0x5C, 0x5D, 0x26, 0x30, 0x55, 0x3C, 0x27, 0x28}; // the AES key used to encrypt meta info
-
     struct ncm_file_st {
         uint64_t magic = ncm_magic;
         uint8_t unknown_padding[2];
@@ -41,4 +40,7 @@ namespace fb2k_ncm
         uint64_t album_image_offset;
         uint64_t audio_content_offset;
     };
+
+    constexpr int max_thread_count = 8; // recommended number of threads (hint)
+
 } // namespace fb2k_ncm

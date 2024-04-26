@@ -7,8 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		A35F92E42BD6E8E600ABAABA /* context_menu.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A35F92E32BD6E8E500ABAABA /* context_menu.cpp */; };
 		A35F92E52BD82FC400ABAABA /* foo_input_ncm.component in CopyFiles */ = {isa = PBXBuildFile; fileRef = A3B7380C2BCCBC6700DF7424 /* foo_input_ncm.component */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+		A35F93C42BDBF18200ABAABA /* context_menu.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A35F93C02BDBF18200ABAABA /* context_menu.cpp */; };
 		A3B738312BCCCF1A00DF7424 /* libpfc-Mac.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A3B738302BCCCF1A00DF7424 /* libpfc-Mac.a */; };
 		A3B738742BCE313B00DF7424 /* libfoobar2000_component_client.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A3B738732BCE313B00DF7424 /* libfoobar2000_component_client.a */; };
 		A3B738762BCE313B00DF7424 /* libfoobar2000_SDK.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A3B738752BCE313B00DF7424 /* libfoobar2000_SDK.a */; };
@@ -39,8 +39,9 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		A35F92E22BD6E84D00ABAABA /* context_menu.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = context_menu.hpp; sourceTree = "<group>"; };
-		A35F92E32BD6E8E500ABAABA /* context_menu.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = context_menu.cpp; sourceTree = "<group>"; };
+		A35F93C02BDBF18200ABAABA /* context_menu.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = context_menu.cpp; sourceTree = "<group>"; };
+		A35F93C12BDBF18200ABAABA /* context_menu.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = context_menu.hpp; sourceTree = "<group>"; };
+		A35F93C22BDBF18200ABAABA /* extraction_process.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = extraction_process.hpp; sourceTree = "<group>"; };
 		A3B7380C2BCCBC6700DF7424 /* foo_input_ncm.component */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = foo_input_ncm.component; sourceTree = BUILT_PRODUCTS_DIR; };
 		A3B738302BCCCF1A00DF7424 /* libpfc-Mac.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; path = "libpfc-Mac.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		A3B738732BCE313B00DF7424 /* libfoobar2000_component_client.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; path = libfoobar2000_component_client.a; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -91,9 +92,21 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		A35F93C32BDBF18200ABAABA /* ui */ = {
+			isa = PBXGroup;
+			children = (
+				A35F93C02BDBF18200ABAABA /* context_menu.cpp */,
+				A35F93C12BDBF18200ABAABA /* context_menu.hpp */,
+				A35F93C22BDBF18200ABAABA /* extraction_process.hpp */,
+			);
+			name = ui;
+			path = src/ui;
+			sourceTree = "<group>";
+		};
 		A3B738032BCCBC6700DF7424 = {
 			isa = PBXGroup;
 			children = (
+				A35F93C32BDBF18200ABAABA /* ui */,
 				A3B738962BCE497400DF7424 /* src */,
 				A3B7380D2BCCBC6700DF7424 /* Products */,
 				A3B738292BCCCF1A00DF7424 /* Frameworks */,
@@ -157,8 +170,6 @@
 				A3B738822BCE497400DF7424 /* common */,
 				A3B7388C2BCE497400DF7424 /* album_art_extractor.cpp */,
 				A3B7388D2BCE497400DF7424 /* album_art_extractor.hpp */,
-				A35F92E32BD6E8E500ABAABA /* context_menu.cpp */,
-				A35F92E22BD6E84D00ABAABA /* context_menu.hpp */,
 				A3B7388F2BCE497400DF7424 /* input_ncm.cpp */,
 				A3B738902BCE497400DF7424 /* input_ncm.hpp */,
 				A3B738912BCE497400DF7424 /* main.cpp */,
@@ -245,7 +256,7 @@
 				A3B738972BCE497400DF7424 /* abnormal_RC4.cpp in Sources */,
 				A3B7389F2BCE497400DF7424 /* album_art_extractor.cpp in Sources */,
 				A3B738A22BCE497400DF7424 /* main.cpp in Sources */,
-				A35F92E42BD6E8E600ABAABA /* context_menu.cpp in Sources */,
+				A35F93C42BDBF18200ABAABA /* context_menu.cpp in Sources */,
 				A3B738A42BCE497400DF7424 /* stdafx.cpp in Sources */,
 				A3B738A12BCE497400DF7424 /* input_ncm.cpp in Sources */,
 			);
