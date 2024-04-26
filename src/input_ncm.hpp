@@ -13,12 +13,10 @@ namespace fb2k_ncm
 
     public:
         input_ncm() = default;
-        virtual ~input_ncm(){};
-
         static constexpr GUID class_guid = guid_candidates[0];
 
     public:
-        void open(service_ptr_t<file> p_filehint, const char *p_path, t_input_open_reason p_reason, abort_callback &p_abort);
+        void open(foobar2000_io::file::ptr p_filehint, const char *p_path, t_input_open_reason p_reason, abort_callback &p_abort);
         static const char *g_get_name();
         static bool g_is_our_path(const char *p_path, const char *p_extension);
         static const GUID g_get_guid();

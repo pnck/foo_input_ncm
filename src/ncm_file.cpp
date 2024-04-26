@@ -31,12 +31,12 @@ t_size fb2k_ncm::ncm_file::read(void *p_buffer, t_size p_bytes, abort_callback &
     }
 }
 
-// @attention this function is not implemented / not in use
+/// @attention This function is not implemented / not in use
 void fb2k_ncm::ncm_file::write(const void *p_buffer, t_size p_bytes, abort_callback &p_abort) {
     auto source_pos = source_->get_position(p_abort);
     if (source_pos < parsed_file_.audio_content_offset) {
         FB2K_console_print("[ERR] Modification (metadata) on a ncm file is not supported.");
-        throw exception_io_write_protected();
+        throw exception_io_denied_readonly();
     }
     auto write_offset = source_pos - parsed_file_.audio_content_offset;
     auto transform = rc4_decrypter_.get_transform();
@@ -59,7 +59,7 @@ t_filesize fb2k_ncm::ncm_file::get_position(abort_callback &p_abort) {
 
 void fb2k_ncm::ncm_file::resize(t_filesize p_size, abort_callback &p_abort) {
     FB2K_console_print("[ERR] Modification (resize) on a ncm file is not supported.");
-    throw exception_io_write_protected();
+    throw exception_io_denied_readonly();
 }
 
 void fb2k_ncm::ncm_file::seek(t_filesize p_position, abort_callback &p_abort) {
@@ -106,15 +106,18 @@ inline void ncm_file::throw_format_error(std::string extra) {
     throw_format_error(extra.c_str());
 }
 
+auto ncm_file::make_seek_guard(abort_callback &p_abort) {
+    return std::unique_ptr<void, std::function<void(void *)>>(nullptr, [this, &p_abort, p = source_->get_position(p_abort)](void *) {
+        // RAII guard, will seek back when function returns
+        source_->seek(p, p_abort);
+    });
+}
+
 void ncm_file::parse(uint16_t to_parse /* = 0xff*/) {
     DEBUG_LOG("[DEBUG] Parse (C=", to_parse, ") ", this_path_);
 
     auto &p_abort = fb2k::noAbort;
-
-    auto _seek_guard_ = std::unique_ptr<void, std::function<void(void *)>>(nullptr, [this, p = source_->get_position(p_abort)](void *) {
-        // RAII guard, will seek back when function returns
-        source_->seek_ex(p, file::t_seek_mode::seek_from_beginning, fb2k::noAbort);
-    });
+    auto _seek_guard_ = make_seek_guard(p_abort);
 
     source_->seek_ex(0, file::t_seek_mode::seek_from_beginning, p_abort);
 
@@ -215,4 +218,42 @@ ENDMETA:
 ENDIMG:
     // remember where audio content starts
     parsed_file_.audio_content_offset = source_->get_position(p_abort);
+}
+
+bool ncm_file::save_raw_audio(const char *to_dir, abort_callback &p_abort) {
+    if (!audio_parsed() || !meta_parsed()) {
+        parse(parse_contents::NCM_PARSE_AUDIO | parse_contents::NCM_PARSE_META);
+    }
+    if (!rc4_decrypter_.is_valid()) {
+        FB2K_console_print("[ERR] Decryptor error.");
+        throw exception_io();
+    }
+    auto ext = [this] {
+        std::string format = std::string(meta_info()["format"].GetString());
+        if (format == "flac") {
+            return ".ncm.flac";
+        }
+        if (format == "mp3") {
+            return ".ncm.mp3";
+        }
+        return ".ncm.unknown";
+    };
+    auto output = pfc::string(to_dir);
+    output.add_filename(pfc::string_filename(this->path()));
+    output += ext();
+
+    file_ptr file_raw;
+    filesystem::g_open_write_new(file_raw, output, p_abort);
+
+    auto _seek_guard_ = make_seek_guard(p_abort);
+
+    if (auto size = file_v2::g_transfer(this, file_raw.get_ptr(), get_size(p_abort), p_abort); size == get_size(p_abort)) {
+        DEBUG_LOG("[DEBUG] Extraction done: ", output);
+        path_raw_saved_to_ = output;
+        return true;
+    }
+
+    DEBUG_LOG("[DEBUG] Extraction failed: ", path());
+    path_raw_saved_to_.clear();
+    return false;
 }

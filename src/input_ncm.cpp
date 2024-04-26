@@ -26,7 +26,7 @@ inline bool fb2k_ncm::input_ncm::g_is_our_content_type(const char *p_content_typ
 }
 
 inline void fb2k_ncm::input_ncm::retag(const file_info &p_info, abort_callback &p_abort) {
-    // @todo: support of retagging on audio content (with ncm wrapper and meta info not touched)
+    // TODO: support of retagging on audio content (with ncm wrapper and meta info not touched)
     throw exception_tagging_unsupported();
 }
 
