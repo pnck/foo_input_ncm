@@ -160,6 +160,7 @@ void ncm_file::parse(uint16_t to_parse /* = 0xff*/) {
         if (0 == parsed_file_.meta_len) {
             FB2K_console_formatter() << "[WARN] No meta data found in ncm file: " << this_path_;
             meta_str_ = "{}"; // meta_parsed() is determined by the content of meta_str_
+            meta_json_.Parse(meta_str_.c_str());
             goto ENDMETA;
         } else {
             auto meta_b64 = std::make_unique<char[]>(parsed_file_.meta_len + 1);
@@ -229,12 +230,14 @@ bool ncm_file::save_raw_audio(const char *to_dir, abort_callback &p_abort) {
         throw exception_io();
     }
     auto ext = [this] {
-        std::string format = std::string(meta_info()["format"].GetString());
-        if (format == "flac") {
-            return ".ncm.flac";
-        }
-        if (format == "mp3") {
-            return ".ncm.mp3";
+        if (bool ok = meta_info().HasMember("format"); ok) {
+            std::string format = std::string(meta_info()["format"].GetString());
+            if (format == "flac") {
+                return ".ncm.flac";
+            }
+            if (format == "mp3") {
+                return ".ncm.mp3";
+            }
         }
         return ".ncm.unknown";
     };

@@ -10,10 +10,11 @@
 #include <functional>
 #include <thread>
 #include <mutex>
+#include <optional>
 
 namespace fb2k_ncm::ui
 {
-    using cps_fn_t = bool(ncm_file::ptr, threaded_process_status &, abort_callback &);
+    using cps_fn_t = std::optional<std::string>(ncm_file::ptr, threaded_process_status &, abort_callback &);
     /// @attention File dialog callback is being executed after the function returns.
     /// Everything should be properly moved into the callback function.
     void run_cmd_extract(metadb_handle_list_cref p_data, const GUID &p_caller, std::function<cps_fn_t> &&continuation = {}) {
@@ -62,14 +63,19 @@ namespace fb2k_ncm::ui
                                     fails.emplace_back(f->path());
                                 } else {
                                     // invoke CPS function
-                                    if ((!continuation) || continuation(f, p_status, p_abort)) {
+                                    if (continuation) {
+                                        if (auto result = continuation(f, p_status, p_abort); !result.has_value()) {
+                                            bool expect_true = true;
+                                            all_done.compare_exchange_strong(expect_true, false);
+                                            std::lock_guard lock(m_fail);
+                                            fails.emplace_back(f->path());
+                                        } else {
+                                            std::lock_guard lock(m_succ);
+                                            succs.emplace_back(*result); // NOTE: output dir
+                                        }
+                                    } else {
                                         std::lock_guard lock(m_succ);
                                         succs.emplace_back(f->saved_raw_path()); // NOTE: output dir
-                                    } else {
-                                        bool expect_true = true;
-                                        all_done.compare_exchange_strong(expect_true, false);
-                                        std::lock_guard lock(m_fail);
-                                        fails.emplace_back(f->path());
                                     }
                                 }
 
@@ -92,7 +98,8 @@ namespace fb2k_ncm::ui
                     DEBUG_LOG("[DEBUG] Extraction main thread: scheduling ", thread_count, " threads.");
 
                     std::vector<std::thread> threads;
-                    for (auto _ : std::views::iota(0) | std::views::take(thread_count)) {
+                    // slicing is still extreamly complicated! - rather not to imitate the [a:b:c] syntax :(
+                    for ([[maybe_unused]] auto _ : std::views::iota(0) | std::views::take(thread_count)) {
                         threads.emplace_back(worker, std::ref(p_status), std::ref(p_abort));
                     }
                     for (auto &t : threads) {
@@ -130,47 +137,68 @@ namespace fb2k_ncm::ui
             }); // end of file dialog callback
     }
     void run_cmd_extract_retag(metadb_handle_list_cref p_data, const GUID &p_caller) {
-        run_cmd_extract(p_data, p_caller, [](ncm_file::ptr ncm_file, threaded_process_status &p_status, abort_callback &p_abort) -> bool {
-            DEBUG_LOG("[DEBUG] Retagging ", ncm_file->saved_raw_path().data());
+        run_cmd_extract(
+            p_data, p_caller,
+            [](ncm_file::ptr ncm_file, threaded_process_status &p_status, abort_callback &p_abort) -> std::optional<std::string> {
+                DEBUG_LOG("[DEBUG] Retagging ", ncm_file->saved_raw_path().data());
 
-            if (p_abort.is_aborting()) {
-                DEBUG_LOG("[DEBUG] Retagging aborted (p_abort)");
-                return false;
-            }
-            // p_status.set_title(PFC_string_formatter() << "Retagging (" << finished_count << " of " << total << ")");
-
-            auto input = input_entry::g_find_by_guid(input_ncm::class_guid);
-            service_ptr_t<input_info_reader> info_reader;
-            input->open_for_info_read(info_reader, ncm_file, "", p_abort);
-            file_info_impl info;
-            info_reader->get_info(0, info, p_abort);
-            auto to_retag = ncm_file->saved_raw_path();
-            if (to_retag.empty()) {
-                DEBUG_LOG("[DEBUG] Not extracted:", ncm_file->path());
-                return false;
-            }
-            service_ptr_t<input_info_writer> retagger;
-            input_entry::g_open_for_info_write(retagger, file_ptr(), to_retag.data(), p_abort);
-            retagger->set_info(0, info, p_abort);
-            retagger->commit(fb2k::noAbort); // do not interrupt committing
-            retagger = nullptr;              // release, to let album editor reopen the file
-
-            try {
-                auto album_extractor = album_art_extractor::g_open(ncm_file, ncm_file->path(), p_abort);
-                auto album_writer = album_art_editor::g_open(nullptr, to_retag.data(), p_abort);
-                if (album_extractor.is_valid() && album_writer.is_valid()) {
-                    if (auto data = album_extractor->query(album_art_ids::cover_front, p_abort); data.is_valid()) {
-                        album_writer->set(album_art_ids::cover_front, data, p_abort);
-                        album_writer->commit(fb2k::noAbort); // do not interrupt committing
-                    }
+                if (p_abort.is_aborting()) {
+                    DEBUG_LOG("[DEBUG] Retagging aborted (p_abort)");
+                    return {};
                 }
-                DEBUG_LOG("[DEBUG] Retagged ", to_retag.data());
-                return true;
-            } catch (const pfc::exception &e) {
-                FB2K_console_print("[ERR] Failed to retag ", to_retag.data(), ":", e.what());
-            }
-            return false;
-        });
+                // p_status.set_title(PFC_string_formatter() << "Retagging (" << finished_count << " of " << total << ")");
+
+                auto input = input_entry::g_find_by_guid(input_ncm::class_guid);
+                service_ptr_t<input_info_reader> info_reader;
+                input->open_for_info_read(info_reader, ncm_file, "", p_abort);
+                file_info_impl info;
+                info_reader->get_info(0, info, p_abort);
+
+                // try to correct file extension if possible
+                pfc::string codec;
+                info.info_get_codec_long(codec);
+                if (codec.toLower().contains("mp3")) {
+                    codec = "mp3";
+                } else if (codec.toLower().contains("flac")) {
+                    codec = "flac";
+                }
+
+                const char *o_path = ncm_file->saved_raw_path().data();
+                auto to_retag = pfc::string_directory(o_path);
+                to_retag.add_filename(pfc::string_filename(o_path));
+                to_retag << "." << codec;
+                if (to_retag.empty()) {
+                    DEBUG_LOG("[DEBUG] Not extracted:", ncm_file->path());
+                    return {};
+                }
+
+                try {
+                    if (to_retag != ncm_file->saved_raw_path().data()) {
+                        filesystem::get(to_retag)->move_overwrite(ncm_file->saved_raw_path().data(), to_retag, p_abort);
+                    }
+
+                    service_ptr_t<input_info_writer> retagger;
+                    input_entry::g_open_for_info_write(retagger, file_ptr(), to_retag, p_abort);
+                    retagger->set_info(0, info, p_abort);
+                    retagger->commit(fb2k::noAbort); // do not interrupt committing
+                    retagger = nullptr;              // release, to let album editor reopen the file
+
+                    // embed album art
+                    auto album_extractor = album_art_extractor::g_open(ncm_file, ncm_file->path(), p_abort);
+                    auto album_writer = album_art_editor::g_open(nullptr, to_retag, p_abort);
+                    if (album_extractor.is_valid() && album_writer.is_valid()) {
+                        if (auto data = album_extractor->query(album_art_ids::cover_front, p_abort); data.is_valid()) {
+                            album_writer->set(album_art_ids::cover_front, data, p_abort);
+                            album_writer->commit(fb2k::noAbort); // do not interrupt committing
+                        }
+                    }
+                    DEBUG_LOG("[DEBUG] Retagged ", to_retag);
+                    return {std::string(to_retag.c_str())};
+                } catch (const pfc::exception &e) {
+                    FB2K_console_print("[ERR] (", e.what(), ") Failed to retag ", to_retag);
+                }
+                return {};
+            });
     }
 } // namespace fb2k_ncm::ui
 
