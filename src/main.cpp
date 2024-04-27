@@ -3,8 +3,12 @@
 /**
     changelog
 
+Version 0.4.1
+- Fix conversion bugs
+- Add progress UI for batch conversion
+
 Version 0.4.0
-- Utilities to convert ncm file to mp3/flac in batch
+- Utilities to convert/extract ncm file to mp3/flac
 
 Version 0.3.0
 - port to support multiple platform / architecture (x64/x86 Windows, Intel/ARM MacOS)
@@ -27,15 +31,20 @@ Version 0.0.1
 
 **/
 
+#define FALLBACK_VERSION "0.4.0"
+
 #ifdef CURRENT_VERSION
 #define VER_STR(X) #X
 #define EXTRACT(X) VER_STR(X)
 #define NCM_LOADER_VERSION EXTRACT(CURRENT_VERSION)
 #else
-#define NCM_LOADER_VERSION "0.4.0"
+#define NCM_LOADER_VERSION FALLBACK_VERSION
 #endif
 
-DECLARE_COMPONENT_VERSION("Ncm Loader", NCM_LOADER_VERSION, "Load and play Netease Music specific file format (ncm) directly.\n");
+constexpr auto About = "Load and play Netease Cloud Music specific format (.ncm) files.\n"
+                       "https://github.com/pnck/foo_input_ncm\n";
+
+DECLARE_COMPONENT_VERSION("Ncm Loader", NCM_LOADER_VERSION, About);
 
 // This will prevent users from renaming your component around (important for proper troubleshooter behaviors) or
 // loading multiple instances of it.

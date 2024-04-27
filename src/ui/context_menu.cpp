@@ -109,18 +109,18 @@ namespace fb2k_ncm::ui
                     pfc::string8 msg;
                     if (all_done) {
                         msg << "All audio content have been extracted successfully.\n\n";
-                        msg << "Extracted:\n";
+                        msg << succs.size() << " Extracted:\n";
                         for (auto &s : succs) {
                             msg << "  - " << s.c_str() << "\n";
                         }
                         popup_message::g_show(msg, "Extraction Completed", popup_message ::icon_information);
                     } else {
                         msg << "Extraction finished but some operations were failed.\n\n";
-                        msg << "Extracted:\n";
+                        msg << succs.size() << " Extracted:\n";
                         for (auto &s : succs) {
                             msg << "  - " << s.c_str() << "\n";
                         }
-                        msg << "\nFailed:\n";
+                        msg << "\n" << fails.size() << " Failed:\n";
                         for (auto &s : fails) {
                             msg << "  - " << s.c_str() << "\n";
                         }
