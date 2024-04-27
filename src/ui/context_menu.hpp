@@ -21,7 +21,16 @@ namespace fb2k_ncm::ui
     public:
         constexpr static GUID class_guid = guid_candidates[2];
         GUID get_parent() { return class_guid; }
-        uint32_t get_num_items() { return __CMD_LAST__; }
+        uint32_t get_num_items() {
+            // NOTE: To be compatible with old (like v1.6) version
+            // Ensure filedialog api works. If not, return 0 to hide the menu, 
+            // in order to prevent the dialog from being called.
+            fb2k::fileDialog::ptr _;
+            if (!fb2k::std_api_try_get<fb2k::fileDialog>(_)) {
+                return 0;
+            }
+            return __CMD_LAST__;
+        }
 
     public:
         void get_item_name(unsigned p_index, pfc::string_base &p_out);
