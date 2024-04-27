@@ -10,8 +10,7 @@ namespace fb2k_ncm
     public:
         // GUID get_guid() override;
         bool is_our_path(const char *p_path, const char *p_extension) override;
-        album_art_extractor_instance_ptr open(file_ptr p_filehint, const char *p_path,
-                                              abort_callback &p_abort) override;
+        album_art_extractor_instance_ptr open(file_ptr p_filehint, const char *p_path, abort_callback &p_abort) override;
     };
 
 } // namespace fb2k_ncm

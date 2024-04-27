@@ -30,7 +30,9 @@ inline void fb2k_ncm::input_ncm::retag(const file_info &p_info, abort_callback &
     throw exception_tagging_unsupported();
 }
 
-inline void fb2k_ncm::input_ncm::remove_tags(abort_callback &p_abort) {}
+inline void fb2k_ncm::input_ncm::remove_tags(abort_callback &p_abort) {
+    throw exception_tagging_unsupported();
+}
 
 inline bool fb2k_ncm::input_ncm::decode_can_seek() {
     return decoder_->can_seek();
@@ -68,10 +70,10 @@ void input_ncm::open(foobar2000_io::file::ptr p_filehint, const char *p_path, t_
         ncm_file_->parse(ncm_file::parse_contents::NCM_PARSE_META | ncm_file::parse_contents::NCM_PARSE_AUDIO);
     }
 
-    // find any available decoders by followint steps:
-    // 1. check if there is format hint in meta_info
-    // 2. select the 2 possible decoder (mp3,flac) and try if they work
-    // 3. enumerate all input_entry and test if who accepts the audio content
+    // find any available decoders by the following steps:
+    // 1. check if there is a format hint in meta_info
+    // 2. select the 2 possible decoder (mp3,flac) and try if any of them works
+    // 3. enumerate all input_entry and test if one accepts the audio content
     service_list_t<input_entry> input_services;
     do {
         // there is format hint, so we don't have to find_input twice or more
@@ -117,14 +119,16 @@ void input_ncm::open(foobar2000_io::file::ptr p_filehint, const char *p_path, t_
         service_enum_t<input_entry> input_enum;
         while (input_enum.next(input_ptr)) {
             try {
-                if (input_ptr.is_valid()) {
-                    input_ptr->open_for_decoding(decoder_, ncm_file_, /*file_path_*/ "", p_abort);
-                    if (decoder_.is_valid()) {
-                        // decoder_->initialize(0, p_flags, p_abort);
-                        DEBUG_LOG("[DEBUG] Found decoder [", input_ptr->get_name(), "] for ", ncm_file_->path());
-                        break;
-                    }
+                if (input_ptr.is_empty()) {
+                    continue;
                 }
+                input_ptr->open_for_decoding(decoder_, ncm_file_, /*file_path_*/ "", p_abort);
+                if (decoder_.is_valid()) {
+                    // decoder_->initialize(0, p_flags, p_abort);
+                    DEBUG_LOG("[DEBUG] Found decoder [", input_ptr->get_name(), "] for ", ncm_file_->path());
+                    break;
+                }
+
             } catch (const pfc::exception &e) {
                 DEBUG_LOG("[DEBUG] (by enumerate) Give up ", input_ptr->get_name_(), "; reason=", e.what());
             }
@@ -168,11 +172,12 @@ t_filestats2 fb2k_ncm::input_ncm::get_stats2(uint32_t f, abort_callback &a) {
 }
 
 void input_ncm::get_info(file_info &p_info, abort_callback &p_abort) {
+    if (ncm_file_.is_empty() || ncm_file_->meta_info().IsNull()) {
+        return;
+    }
+
     if (source_info_reader_.is_valid()) {
         source_info_reader_->get_info(/*sub song*/ 0, p_info, p_abort);
-    }
-    if (ncm_file_->meta_info().IsNull()) {
-        return;
     }
 
     // p_info.set_length(meta()["duration"].GetInt() / 1000.0);
@@ -215,7 +220,7 @@ void input_ncm::get_info(file_info &p_info, abort_callback &p_abort) {
         std::stringstream comment;
         bool first = true;
         for (auto &v : ncm_file_->meta_info()["alias"].GetArray()) {
-            // p_info.meta_add("Alias", v.GetString());
+            p_info.meta_add("Alias", v.GetString());
             if (!first) {
                 comment << " | ";
             }
