@@ -10,6 +10,13 @@
 - Or on MacOS
   ![screenshot-mac](/doc/screenshot-mac.png)
 
+
+### Features
+- [x] Seamlessly load and play `.ncm` format files in _foobar2000_.
+- [x] Fully integrated with the powerful built-in _`metadb`_ system, enabling efficient searching and strong management capabilities.
+- [x] Unwrap/Convert `.ncm` to normal `.mp3` or `.flac` format with blazing speed.
+- [ ] ReplayGain and retagging support.
+
 ### Compatibility
 
 - [x] x64 foobar2000 on Windows (version >= v2.0)

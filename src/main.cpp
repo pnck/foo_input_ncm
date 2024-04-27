@@ -1,35 +1,37 @@
 ﻿#include "stdafx.h"
 
-/**
-    changelog
+/*
 
-Version 0.4.1
-- Fix conversion bugs
-- Add progress UI for batch conversion
+  Change Log
 
-Version 0.4.0
-- Utilities to convert/extract ncm file to mp3/flac
+  Version 0.4.1
+  - Concurrency support for batch conversion
+  - Add progress UI for batch conversion
+  - Bug fixes
 
-Version 0.3.0
-- port to support multiple platform / architecture (x64/x86 Windows, Intel/ARM MacOS)
+  Version 0.4.0
+  - Utilities to convert/extract ncm file to mp3/flac
 
-Version 0.2.0
-- decode and play any ncm file
-- correctly recognize meta info and album artworks
+  Version 0.3.0
+  - port to support multiple platform / architecture (x64/x86 Windows, Intel/ARM MacOS)
 
-Version 0.1.0
-- decode and play any ncm file
-- meta info correctly recognized (without album artwork)
+  Version 0.2.0
+  - decode and play any ncm file
+  - correctly recognize meta info and album artworks
 
-Version 0.0.2
-- able to play specific content (flac/mp3) ncm file
-- get basic file stats
+  Version 0.1.0
+  - decode and play any ncm file
+  - meta info correctly recognized (without album artwork)
 
-Version 0.0.1
-- file decryption ciphers
-- loadable plugin stub
+  Version 0.0.2
+  - able to play specific content (flac/mp3) ncm file
+  - get basic file stats
 
-**/
+  Version 0.0.1
+  - file decryption ciphers
+  - loadable plugin stub
+
+ */
 
 #define FALLBACK_VERSION "0.4.0"
 
