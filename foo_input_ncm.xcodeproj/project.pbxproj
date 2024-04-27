@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		A35F92E52BD82FC400ABAABA /* foo_input_ncm.component in CopyFiles */ = {isa = PBXBuildFile; fileRef = A3B7380C2BCCBC6700DF7424 /* foo_input_ncm.component */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+		A35F93C42BDBF18200ABAABA /* context_menu.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A35F93C02BDBF18200ABAABA /* context_menu.cpp */; };
 		A3B738312BCCCF1A00DF7424 /* libpfc-Mac.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A3B738302BCCCF1A00DF7424 /* libpfc-Mac.a */; };
 		A3B738742BCE313B00DF7424 /* libfoobar2000_component_client.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A3B738732BCE313B00DF7424 /* libfoobar2000_component_client.a */; };
 		A3B738762BCE313B00DF7424 /* libfoobar2000_SDK.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A3B738752BCE313B00DF7424 /* libfoobar2000_SDK.a */; };
@@ -21,7 +23,6 @@
 		A3B738B32BD2632D00DF7424 /* aes_macos.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A3B738AB2BD1B31300DF7424 /* aes_macos.cpp */; };
 		A3B738B42BD2632D00DF7424 /* aes_common.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A3B738A92BCFDDC800DF7424 /* aes_common.cpp */; };
 		A3B738B52BD2634E00DF7424 /* libshared.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A3B738B02BD22E7300DF7424 /* libshared.a */; };
-		A3B738B82BD2F35800DF7424 /* foo_input_ncm.component in CopyFiles */ = {isa = PBXBuildFile; fileRef = A3B7380C2BCCBC6700DF7424 /* foo_input_ncm.component */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -31,13 +32,16 @@
 			dstPath = "${PROJECT_DIR}/dist/mac";
 			dstSubfolderSpec = 0;
 			files = (
-				A3B738B82BD2F35800DF7424 /* foo_input_ncm.component in CopyFiles */,
+				A35F92E52BD82FC400ABAABA /* foo_input_ncm.component in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		A35F93C02BDBF18200ABAABA /* context_menu.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = context_menu.cpp; sourceTree = "<group>"; };
+		A35F93C12BDBF18200ABAABA /* context_menu.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = context_menu.hpp; sourceTree = "<group>"; };
+		A35F93C22BDBF18200ABAABA /* extraction_process.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = extraction_process.hpp; sourceTree = "<group>"; };
 		A3B7380C2BCCBC6700DF7424 /* foo_input_ncm.component */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = foo_input_ncm.component; sourceTree = BUILT_PRODUCTS_DIR; };
 		A3B738302BCCCF1A00DF7424 /* libpfc-Mac.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; path = "libpfc-Mac.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		A3B738732BCE313B00DF7424 /* libfoobar2000_component_client.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; path = libfoobar2000_component_client.a; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -88,9 +92,21 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		A35F93C32BDBF18200ABAABA /* ui */ = {
+			isa = PBXGroup;
+			children = (
+				A35F93C02BDBF18200ABAABA /* context_menu.cpp */,
+				A35F93C12BDBF18200ABAABA /* context_menu.hpp */,
+				A35F93C22BDBF18200ABAABA /* extraction_process.hpp */,
+			);
+			name = ui;
+			path = src/ui;
+			sourceTree = "<group>";
+		};
 		A3B738032BCCBC6700DF7424 = {
 			isa = PBXGroup;
 			children = (
+				A35F93C32BDBF18200ABAABA /* ui */,
 				A3B738962BCE497400DF7424 /* src */,
 				A3B7380D2BCCBC6700DF7424 /* Products */,
 				A3B738292BCCCF1A00DF7424 /* Frameworks */,
@@ -240,6 +256,7 @@
 				A3B738972BCE497400DF7424 /* abnormal_RC4.cpp in Sources */,
 				A3B7389F2BCE497400DF7424 /* album_art_extractor.cpp in Sources */,
 				A3B738A22BCE497400DF7424 /* main.cpp in Sources */,
+				A35F93C42BDBF18200ABAABA /* context_menu.cpp in Sources */,
 				A3B738A42BCE497400DF7424 /* stdafx.cpp in Sources */,
 				A3B738A12BCE497400DF7424 /* input_ncm.cpp in Sources */,
 			);
@@ -285,8 +302,8 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 0.3.4;
-				DEAD_CODE_STRIPPING = NO;
+				CURRENT_PROJECT_VERSION = 0.4.0;
+				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
@@ -300,6 +317,7 @@
 				GCC_PREFIX_HEADER = stdafx.h;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"DEBUG=1",
+					"_DEBUG=1",
 					"$(inherited)",
 				);
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
@@ -319,9 +337,10 @@
 				LIBRARY_SEARCH_PATHS = "";
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MACOSX_DEPLOYMENT_TARGET = 13.3;
-				MARKETING_VERSION = 0.3.4;
+				MARKETING_VERSION = 0.4.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = NO;
 				SDKROOT = macosx;
 				STRIP_INSTALLED_PRODUCT = NO;
 				VERSIONING_SYSTEM = "apple-generic";
@@ -362,7 +381,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = YES;
-				CURRENT_PROJECT_VERSION = 0.3.4;
+				CURRENT_PROJECT_VERSION = 0.4.0;
 				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
@@ -391,7 +410,7 @@
 				LIBRARY_SEARCH_PATHS = "";
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MACOSX_DEPLOYMENT_TARGET = 13.3;
-				MARKETING_VERSION = 0.3.4;
+				MARKETING_VERSION = 0.4.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = NO;
@@ -407,15 +426,17 @@
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = 8PPLPSV8X2;
 				FRAMEWORK_SEARCH_PATHS = "";
 				GCC_PREFIX_HEADER = src/stdafx.h;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.music";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				INFOPLIST_KEY_NSPrincipalClass = "";
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Bundles";
 				MACOSX_DEPLOYMENT_TARGET = 13.3;
-				MARKETING_VERSION = 0.3.0;
+				MARKETING_VERSION = 0.4.0;
+				ONLY_ACTIVE_ARCH = NO;
 				PRODUCT_BUNDLE_IDENTIFIER = "pnck.foo-input-ncm";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
@@ -432,16 +453,17 @@
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = 8PPLPSV8X2;
 				FRAMEWORK_SEARCH_PATHS = "";
 				GCC_PREFIX_HEADER = src/stdafx.h;
 				GCC_PREPROCESSOR_DEFINITIONS = "NDEBUG=1";
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.music";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				INFOPLIST_KEY_NSPrincipalClass = "";
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Bundles";
 				MACOSX_DEPLOYMENT_TARGET = 13.3;
-				MARKETING_VERSION = 0.3.0;
+				MARKETING_VERSION = 0.4.0;
 				ONLY_ACTIVE_ARCH = NO;
 				PRODUCT_BUNDLE_IDENTIFIER = "pnck.foo-input-ncm";
 				PRODUCT_NAME = "$(TARGET_NAME)";

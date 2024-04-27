@@ -34,8 +34,9 @@ std::function<uint8_t(uint8_t, size_t)> fb2k_ncm::cipher::abnormal_RC4::get_tran
     return [this](uint8_t b, size_t offset) -> uint8_t { return b ^ key_box_[offset & 0xff]; };
 }
 
-abnormal_RC4::abnormal_RC4(abnormal_RC4 &c) : key_seed(key_seed_), key_seed_(c.key_seed_), key_box_(c.key_box_), counter_(c.counter_) {}
-abnormal_RC4 &abnormal_RC4::operator=(abnormal_RC4 &c) {
+abnormal_RC4::abnormal_RC4(const abnormal_RC4 &c)
+    : key_seed(key_seed_), key_seed_(c.key_seed_), key_box_(c.key_box_), counter_(c.counter_) {}
+abnormal_RC4 &abnormal_RC4::operator=(const abnormal_RC4 &c) {
     key_seed_ = c.key_seed_;
     key_box_ = c.key_box_;
     counter_ = c.counter_;

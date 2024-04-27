@@ -16,6 +16,12 @@
     <Filter Include="Source Files\cipher">
       <UniqueIdentifier>{8fbe3d95-ce5d-45fc-9c23-7924f6a1effd}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\ui">
+      <UniqueIdentifier>{3501375e-da47-48cf-9b61-e1aaea8a1d3c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\ui">
+      <UniqueIdentifier>{66067789-eb07-4b26-b5cd-2cfb2626231a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\album_art_extractor.hpp">
@@ -60,6 +66,9 @@
     <ClInclude Include="src\cipher\aes_common.hpp">
       <Filter>Header Files\cipher</Filter>
     </ClInclude>
+    <ClInclude Include="src\ui\context_menu.hpp">
+      <Filter>Header Files\ui</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\album_art_extractor.cpp">
@@ -85,6 +94,9 @@
     </ClCompile>
     <ClCompile Include="src\cipher\aes_common.cpp">
       <Filter>Source Files\cipher</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ui\context_menu.cpp">
+      <Filter>Source Files\ui</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
