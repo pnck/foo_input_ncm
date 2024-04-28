@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "input_ncm.hpp"
+#include "common/log.hpp"
 
 #include <string>
 #include <sstream>
@@ -40,26 +41,26 @@ inline bool fb2k_ncm::input_ncm::decode_can_seek() {
 
 void input_ncm::open(foobar2000_io::file::ptr p_filehint, const char *p_path, t_input_open_reason p_reason, abort_callback &p_abort) {
     if (p_reason == t_input_open_reason::input_open_info_write) {
-        FB2K_console_print("[ERR] Modification on a ncm file is not supported.");
+        ERROR_LOG("Modification on a ncm file is not supported.");
         throw exception_io_unsupported_format();
     }
     if (ncm_file_.is_empty()) {
         if (std::string checked_path(p_path); checked_path.length()) { // open from filesystem
-            DEBUG_LOG("[DEBUG] input_ncm::open (", p_path, ") for reason ", p_reason);
+            DEBUG_LOG("input_ncm::open (", p_path, ") for reason ", p_reason);
             ncm_file_ = fb2k::service_new<ncm_file>(p_path);
             if (!ncm_file_.is_valid()) {
-                FB2K_console_print("[ERR] Failed to open file: ", p_path);
+                ERROR_LOG("Failed to open file: ", p_path);
                 throw exception_io_not_found();
             }
         } else if (p_filehint.is_valid()) { // attach an opened ncm_file
             if (p_filehint->cast(ncm_file_)) {
-                DEBUG_LOG("[DEBUG] input_ncm::open (", ncm_file_->path(), ") for reason ", p_reason, " (from file hint)");
+                DEBUG_LOG("input_ncm::open (", ncm_file_->path(), ") for reason ", p_reason, " (from file hint)");
             } else {
-                DEBUG_LOG("[DEBUG] input_ncm::open cast from file_ptr failed, reason=", p_reason);
+                DEBUG_LOG("input_ncm::open cast from file_ptr failed, reason=", p_reason);
                 throw exception_io_unsupported_feature();
             }
         } else {
-            FB2K_console_print("[ERR] Open ncm file failed (invalid file hint).");
+            ERROR_LOG("Open ncm file failed (invalid file hint).");
             throw exception_io_no_handler_for_path();
         }
     }
@@ -85,7 +86,7 @@ void input_ncm::open(foobar2000_io::file::ptr p_filehint, const char *p_path, t_
                 input_entry::g_find_inputs_by_content_type(input_services, "audio/mpeg", true);
                 break;
             } else {
-                FB2K_console_print("[ERR] Unknown ncm format hint: ", ncm_file_->meta_info()["format"].GetString());
+                ERROR_LOG("Unknown ncm format hint: ", ncm_file_->meta_info()["format"].GetString());
                 throw exception_io_unsupported_format();
             }
         }
@@ -106,12 +107,12 @@ void input_ncm::open(foobar2000_io::file::ptr p_filehint, const char *p_path, t_
                 input_ptr->open_for_decoding(decoder_, ncm_file_, /*file_path_*/ "", p_abort);
                 if (decoder_.is_valid()) {
                     // decoder_->initialize(0, p_flags, p_abort);
-                    DEBUG_LOG("[DEBUG] Found decoder [", input_ptr->get_name(), "] for ", ncm_file_->path());
+                    DEBUG_LOG("Found decoder [", input_ptr->get_name(), "] for ", ncm_file_->path());
                     break;
                 }
             }
         } catch (const pfc::exception &e) {
-            DEBUG_LOG("[DEBUG] (by MIME) Give up ", input_ptr->get_name_(), "; reason=", e.what());
+            DEBUG_LOG("(by MIME) Give up ", input_ptr->get_name_(), "; reason=", e.what());
         }
     }
     if (decoder_.is_empty()) {
@@ -125,18 +126,18 @@ void input_ncm::open(foobar2000_io::file::ptr p_filehint, const char *p_path, t_
                 input_ptr->open_for_decoding(decoder_, ncm_file_, /*file_path_*/ "", p_abort);
                 if (decoder_.is_valid()) {
                     // decoder_->initialize(0, p_flags, p_abort);
-                    DEBUG_LOG("[DEBUG] Found decoder [", input_ptr->get_name(), "] for ", ncm_file_->path());
+                    DEBUG_LOG("Found decoder [", input_ptr->get_name(), "] for ", ncm_file_->path());
                     break;
                 }
 
             } catch (const pfc::exception &e) {
-                DEBUG_LOG("[DEBUG] (by enumerate) Give up ", input_ptr->get_name_(), "; reason=", e.what());
+                DEBUG_LOG("(by enumerate) Give up ", input_ptr->get_name_(), "; reason=", e.what());
             }
         }
     }
 
     if (decoder_.is_empty()) {
-        FB2K_console_print("[ERR] Failed to find proper audio decoder.");
+        ERROR_LOG("Failed to find proper audio decoder.");
         throw exception_service_not_found();
     }
 
@@ -148,7 +149,7 @@ void input_ncm::open(foobar2000_io::file::ptr p_filehint, const char *p_path, t_
 void input_ncm::decode_seek(double p_seconds, abort_callback &p_abort) {
     // seek position is masqueraded by ncm_file
     decoder_->seek(p_seconds, p_abort);
-    DEBUG_LOG("[DEBUG] decode_seek() : ", p_seconds, " sec");
+    DEBUG_LOG("decode_seek() : ", p_seconds, " sec");
 }
 
 bool input_ncm::decode_run(audio_chunk &p_chunk, abort_callback &p_abort) {
@@ -159,7 +160,7 @@ void input_ncm::decode_initialize(unsigned p_flags, abort_callback &p_abort) {
     // initialize should always follow open
     ncm_file_->ensure_audio_offset();
     decoder_->initialize(/*no subsong*/ 0, p_flags, p_abort);
-    DEBUG_LOG("[DEBUG] decode_initialize() called");
+    DEBUG_LOG("decode_initialize() called");
 }
 
 t_filestats input_ncm::get_file_stats(abort_callback &p_abort) {

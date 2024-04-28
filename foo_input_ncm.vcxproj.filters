@@ -69,6 +69,9 @@
     <ClInclude Include="src\ui\context_menu.hpp">
       <Filter>Header Files\ui</Filter>
     </ClInclude>
+    <ClInclude Include="src\common\log.hpp">
+      <Filter>Header Files\common</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\album_art_extractor.cpp">

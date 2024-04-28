@@ -89,7 +89,7 @@ namespace fb2k_ncm::cipher::details
     };
 
     class AES_context_macos : public AES_context_common {
-        using base = AES_context_common;
+        using base_t = AES_context_common;
 
         template <size_t KEYLEN>
         using AES = AES_cipher_macos<KEYLEN>;
@@ -105,11 +105,11 @@ namespace fb2k_ncm::cipher::details
         inline auto &decrypt_all() { CHAINED(decrypt_all); }
         inline auto &decrypt_chunk(size_t chunk_size) { CHAINED(decrypt_chunk, chunk_size); }
         inline auto &decrypt_next() { CHAINED(decrypt_next); }
-        inline void finish() { base::finish(); }
+        inline void finish() { base_t::finish(); }
 
     public:
         template <size_t KEYLEN>
-        explicit AES_context_macos(AES_cipher_macos<KEYLEN> &&c) : base() {
+        explicit AES_context_macos(AES_cipher_macos<KEYLEN> &&c) : base_t() {
             if constexpr (std::is_constructible_v<decltype(cipher_), decltype(c)>) {
                 cipher_ = std::move(c);
             } else {
@@ -123,7 +123,7 @@ namespace fb2k_ncm::cipher::details
             if (this == &tmp) {
                 return;
             }
-            base::operator=(std::move(tmp));
+            base_t::operator=(std::move(tmp));
             cipher_ = std::move(tmp.cipher_);
         }
 

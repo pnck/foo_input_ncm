@@ -1,8 +1,9 @@
 #pragma once
 
 #include "stdafx.h"
+#include "common/consts.hpp"
 #include "cipher/cipher.h"
-#include "rapidjson/include/rapidjson/document.h"
+#include "rapidjson/document.h"
 
 #include <fstream>
 #include <string_view>

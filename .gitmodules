@@ -2,3 +2,6 @@
 	path = vendor/rapidjson
 	url = git@github.com:Tencent/rapidjson.git
 	branch = master
+[submodule "vendor/spdlog"]
+	path = vendor/spdlog
+	url = git@github.com:gabime/spdlog.git

@@ -140,7 +140,7 @@
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <LanguageStandard_C>stdc11</LanguageStandard_C>
-      <AdditionalIncludeDirectories>src; vendor; vendor/sdk</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>src;vendor/spdlog/include;vendor/rapidjson/include;vendor/sdk</AdditionalIncludeDirectories>
       <AdditionalOptions>/Zc:__cplusplus %(AdditionalOptions)</AdditionalOptions>
       <PrecompiledHeader>Use</PrecompiledHeader>
     </ClCompile>
@@ -197,6 +197,7 @@ copy $(TargetPath)  $(ProjectDir)dist\$(Platform)\</Command>
     <ClInclude Include="src\cipher\utils.hpp" />
     <ClInclude Include="src\common\consts.hpp" />
     <ClInclude Include="src\common\helpers.hpp" />
+    <ClInclude Include="src\common\log.hpp" />
     <ClInclude Include="src\common\platform.hpp" />
     <ClInclude Include="src\ui\context_menu.hpp" />
     <ClInclude Include="src\input_ncm.hpp" />

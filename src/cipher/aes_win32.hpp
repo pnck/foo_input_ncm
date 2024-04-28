@@ -83,7 +83,7 @@ namespace fb2k_ncm::cipher::details
     };
 
     class AES_context_win32 : public AES_context_common {
-        using base = AES_context_common;
+        using base_t = AES_context_common;
         using clazz = AES_context_win32;
 
         template <size_t KEYLEN>
@@ -137,7 +137,7 @@ namespace fb2k_ncm::cipher::details
             if (this == &tmp) {
                 return;
             }
-            base::operator=(std::move(tmp));
+            base_t::operator=(std::move(tmp));
             cipher_ = std::move(tmp.cipher_);
         }
 
@@ -156,7 +156,7 @@ namespace fb2k_ncm::cipher::details
         inline auto &decrypt_all() { CHAINED(decrypt_all); }
         inline auto &decrypt_chunk(size_t chunk_size) { CHAINED(decrypt_chunk, chunk_size); }
         inline auto &decrypt_next() { CHAINED(decrypt_next); }
-        inline void finish() { base::finish(); }
+        inline void finish() { base_t::finish(); }
 
     private:
         std::variant<AES128, AES192, AES256> cipher_;

@@ -1,4 +1,5 @@
 #include "stdafx.h"
+#include "common/log.hpp"
 #include "album_art_extractor.hpp"
 
 using namespace fb2k_ncm;
@@ -25,7 +26,7 @@ album_art_extractor_instance_ptr ncm_album_art_extractor::open(file_ptr p_filehi
             break;
         }
 
-        DEBUG_LOG("[DEBUG] ncm_album_art_extractor::open cast from file_ptr failed");
+        DEBUG_LOG("ncm_album_art_extractor::open cast from file_ptr failed");
         throw exception_io_unsupported_feature();
     } while (false);
 

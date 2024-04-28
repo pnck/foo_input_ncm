@@ -1,6 +1,9 @@
 #include "stdafx.h"
 #include "ncm_file.hpp"
-#include "rapidjson/include/rapidjson/stringbuffer.h"
+#include "rapidjson/stringbuffer.h"
+
+#include "common/log.hpp"
+
 
 #include <algorithm>
 #include <span>
@@ -10,7 +13,7 @@ using namespace fb2k_ncm;
 
 t_size fb2k_ncm::ncm_file::read(void *p_buffer, t_size p_bytes, abort_callback &p_abort) {
     if (!rc4_decrypter_.is_valid()) {
-        FB2K_console_print("[ERR] Decryptor error.");
+        ERROR_LOG("Decryptor error.");
         throw exception_io();
     } else {
         auto source_pos = source_->get_position(p_abort);
@@ -26,7 +29,7 @@ t_size fb2k_ncm::ncm_file::read(void *p_buffer, t_size p_bytes, abort_callback &
         auto dec = rc4_decrypter_.reset_counter(read_offset).transform(enc);
         std::span<uint8_t> output(static_cast<uint8_t *>(p_buffer), p_bytes);
         std::copy(std::begin(dec), std::end(dec), std::begin(output));
-        DEBUG_LOG("[DEBUG] Read at ", read_offset, " (", source_pos, ") : req=", p_bytes, " real=", total);
+        DEBUG_LOG("Read at ", read_offset, " (", source_pos, ") : req=", p_bytes, " real=", total);
         return total;
     }
 }
@@ -35,7 +38,7 @@ t_size fb2k_ncm::ncm_file::read(void *p_buffer, t_size p_bytes, abort_callback &
 void fb2k_ncm::ncm_file::write(const void *p_buffer, t_size p_bytes, abort_callback &p_abort) {
     auto source_pos = source_->get_position(p_abort);
     if (source_pos < parsed_file_.audio_content_offset) {
-        FB2K_console_print("[ERR] Modification (metadata) on a ncm file is not supported.");
+        ERROR_LOG("Modification (metadata) on a ncm file is not supported.");
         throw exception_io_denied_readonly();
     }
     auto write_offset = source_pos - parsed_file_.audio_content_offset;
@@ -58,7 +61,7 @@ t_filesize fb2k_ncm::ncm_file::get_position(abort_callback &p_abort) {
 }
 
 void fb2k_ncm::ncm_file::resize(t_filesize p_size, abort_callback &p_abort) {
-    FB2K_console_print("[ERR] Modification (resize) on a ncm file is not supported.");
+    ERROR_LOG("Modification (resize) on a ncm file is not supported.");
     throw exception_io_denied_readonly();
 }
 
@@ -98,7 +101,7 @@ void ncm_file::ensure_audio_offset() {
 }
 
 inline void ncm_file::throw_format_error(const char *extra) {
-    FB2K_console_print("[ERR] Unsupported format or corrupted file (", extra, ").");
+    ERROR_LOG("Unsupported format or corrupted file (", extra, ").");
     throw exception_io_unsupported_format();
 }
 
@@ -114,7 +117,7 @@ auto ncm_file::make_seek_guard(abort_callback &p_abort) {
 }
 
 void ncm_file::parse(uint16_t to_parse /* = 0xff*/) {
-    DEBUG_LOG("[DEBUG] Parse (C=", to_parse, ") ", this_path_);
+    DEBUG_LOG("Parse (C=", to_parse, ") ", this_path_);
 
     auto &p_abort = fb2k::noAbort;
     auto _seek_guard_ = make_seek_guard(p_abort);
@@ -192,7 +195,7 @@ void ncm_file::parse(uint16_t to_parse /* = 0xff*/) {
             if (!meta_json_.IsObject()) {
                 FB2K_console_formatter() << "[WARN] Failed to parse meta info of ncm file: " << this_path_;
             } else {
-                DEBUG_LOG("[DEBUG] Metainfo str: ", meta_str_.c_str());
+                DEBUG_LOG("Metainfo str: ", meta_str_.c_str());
             }
         }
     } else {
@@ -226,7 +229,7 @@ bool ncm_file::save_raw_audio(const char *to_dir, abort_callback &p_abort) {
         parse(parse_contents::NCM_PARSE_AUDIO | parse_contents::NCM_PARSE_META);
     }
     if (!rc4_decrypter_.is_valid()) {
-        FB2K_console_print("[ERR] Decryptor error.");
+        ERROR_LOG("Decryptor error.");
         throw exception_io();
     }
     auto ext = [this] {
@@ -259,16 +262,16 @@ bool ncm_file::save_raw_audio(const char *to_dir, abort_callback &p_abort) {
         filesystem::g_open_write_new(file_raw, output, p_abort);
 
         if (auto size = file_v2::g_transfer(this, file_raw.get_ptr(), get_size(p_abort), p_abort); size == get_size(p_abort)) {
-            DEBUG_LOG("[DEBUG] Extraction done: ", output);
+            DEBUG_LOG("Extraction done: ", output);
             path_raw_saved_to_ = output;
             return true;
         }
     } catch (const exception_aborted &) {
-        DEBUG_LOG("[DEBUG] Aborted: ", path());
+        DEBUG_LOG("Aborted: ", path());
     } catch (const pfc::exception &e) {
-        FB2K_console_print("[ERR] ", e.what(), " (writing ", output, ") ");
+        ERROR_LOG("", e.what(), " (writing ", output, ") ");
     }
-    DEBUG_LOG("[DEBUG] Extraction failed: ", path());
+    DEBUG_LOG("Extraction failed: ", path());
     path_raw_saved_to_.clear();
     return false;
 }
