@@ -74,15 +74,22 @@ std::string _forward_strs(Args &&...args) {
 extern const struct _spdlog_init_helper_st {
     _spdlog_init_helper_st() {
         auto dist_sink = std::make_shared<spdlog::sinks::dist_sink_mt>();
-        dist_sink->add_sink(std::make_shared<fb2k_console_sink_mt>());
-        // dist_sink->add_sink(std::make_shared<spdlog::sinks::stdout_color_sink_mt>());
+        auto fb2k_console_sink = std::make_shared<fb2k_console_sink_mt>();
+        fb2k_console_sink->set_pattern("[%l] %v");
+        dist_sink->add_sink(fb2k_console_sink);
+#if (defined _DEBUG) || (defined DEBUG)
+        auto stdout_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
+        stdout_sink->set_pattern("%^%X.%e [%l](%@)\n  =>%$ %v\n");
+        stdout_sink->set_color_mode(spdlog::color_mode::always);
+        dist_sink->add_sink(stdout_sink);
+#endif
         auto logger = std::make_shared<spdlog::logger>("fb2k_ncm", dist_sink);
-        spdlog::register_logger(logger);
+        // spdlog::register_logger(logger);
         spdlog::set_default_logger(logger);
-        spdlog::set_level(spdlog::level::debug);
-        spdlog::set_pattern("[%l] %v");
+        spdlog::set_level(spdlog::level::level_enum(SPDLOG_ACTIVE_LEVEL));
     }
 } g_spdlog_init_helper;
 
 #define DEBUG_LOG(...) SPDLOG_DEBUG(_forward_strs(__VA_ARGS__))
+#define DEBUG_LOG_F(...) SPDLOG_DEBUG(__VA_ARGS__)
 #define ERROR_LOG(...) SPDLOG_ERROR(_forward_strs(__VA_ARGS__))

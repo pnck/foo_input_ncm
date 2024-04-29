@@ -12,9 +12,11 @@ namespace fb2k_ncm::cipher
     // special rc4-like BLOCK CIPHER used for ncm files
     class abnormal_RC4 {
     public:
-        abnormal_RC4() : key_seed(key_seed_) {}
+        abnormal_RC4() = default;
+        ~abnormal_RC4() = default;
+        abnormal_RC4(const uint8_t *beg, const uint8_t *end);
+        abnormal_RC4(const std::vector<uint8_t> &seed);
         abnormal_RC4(const uint8_t *seed, size_t len);
-        abnormal_RC4(const std::vector<uint8_t> &seed) : abnormal_RC4(seed.data(), seed.size()) {}
         abnormal_RC4(const abnormal_RC4 &c);
         abnormal_RC4 &operator=(const abnormal_RC4 &c);
         abnormal_RC4(abnormal_RC4 &&c);
@@ -36,7 +38,7 @@ namespace fb2k_ncm::cipher
         }
 
     public:
-        const std::vector<uint8_t> &key_seed;
+        inline std::vector<uint8_t> &key_seed() { return key_seed_; }
 
     private:
         std::vector<uint8_t> key_seed_;

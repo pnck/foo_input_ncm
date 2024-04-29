@@ -88,6 +88,9 @@ namespace fb2k_ncm::ui
                         } catch (const exception_aborted &) {
                             DEBUG_LOG("Extraction worker aborted (p_abort)");
                             all_done = false;
+                        } catch (const std::exception &e) {
+                            ERROR_LOG("Extraction worker failed: ", e.what());
+                            all_done = false;
                         }
                     };
 

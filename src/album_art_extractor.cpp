@@ -31,7 +31,7 @@ album_art_extractor_instance_ptr ncm_album_art_extractor::open(file_ptr p_filehi
     } while (false);
 
     if (_ncm_file->image_data().empty()) {
-        _ncm_file->parse(ncm_file::parse_contents::NCM_PARSE_ALBUM);
+        _ncm_file->parse(ncm_file::parse_targets::NCM_PARSE_ALBUM);
     }
 
     auto album_art_instance = fb2k::service_new<album_art_extractor_instance_simple>();

@@ -92,13 +92,4 @@ namespace fb2k_ncm::cipher
     [[nodiscard]] inline AES_context make_AES_context_with_key(const std::vector<uint8_t> &key) {
         return make_AES_context_with_key(key.data(), key.size());
     }
-    [[nodiscard]] inline size_t guess_padding(uint8_t *end) {
-        uint8_t last = *(end - 1);
-        for (uint8_t *p = end - 1; p >= (end - last); --p) {
-            if (*p != last) {
-                return 0;
-            }
-        }
-        return last;
-    }
 } // namespace fb2k_ncm::cipher

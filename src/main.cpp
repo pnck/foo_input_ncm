@@ -33,7 +33,7 @@
 
  */
 
-#define FALLBACK_VERSION "0.4.0"
+#define FALLBACK_VERSION "0.5.0"
 
 #ifdef CURRENT_VERSION
 #define VER_STR(X) #X

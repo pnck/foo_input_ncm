@@ -24,7 +24,7 @@ namespace fb2k_ncm
         FB2K_MAKE_SERVICE_INTERFACE(ncm_file, file);
 
     public:
-        enum parse_contents {
+        enum parse_targets : uint16_t {
             NCM_PARSE_META = 0b1,
             NCM_PARSE_ALBUM = 0b10,
             NCM_PARSE_AUDIO = 0b100,
@@ -51,16 +51,17 @@ namespace fb2k_ncm
         t_filetimestamp get_timestamp(abort_callback &p_abort);
 
     public:
-        explicit ncm_file(const char *path) : this_path_(path) {
-            filesystem::g_open(source_, path, filesystem::open_mode_read, fb2k::noAbort);
+        explicit ncm_file(const char *path, filesystem::t_open_mode open_mode = filesystem::open_mode_read) : this_path_(path) {
+            filesystem::g_open(source_, path, open_mode, fb2k::noAbort);
         }
-        void ensure_audio_offset();
         void parse(uint16_t to_parse = 0xffff);
         bool save_raw_audio(const char *to_dir, abort_callback &p_abort = fb2k::noAbort);
 
     private:
         inline void throw_format_error(const char *extra = nullptr);
-        inline void throw_format_error(std::string extra);
+        inline void throw_format_error(const std::string &extra);
+        inline void ensure_audio_offset();
+        inline void ensure_decryptor();
         auto make_seek_guard(abort_callback &p_abort);
 
     public:
@@ -80,7 +81,7 @@ namespace fb2k_ncm
 
         std::string meta_str_;
         rapidjson::Document meta_json_;
-        cipher::abnormal_RC4 rc4_decrypter_;
+        cipher::abnormal_RC4 rc4_decryptor_;
         std::vector<uint8_t> image_data_;
         std::string path_raw_saved_to_;
     };

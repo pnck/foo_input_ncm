@@ -1,53 +1,82 @@
 #include "stdafx.h"
 #include "ncm_file.hpp"
-#include "rapidjson/stringbuffer.h"
 
+#include "common/platform.hpp"
 #include "common/log.hpp"
 
-
+#include "rapidjson/stringbuffer.h"
 #include <algorithm>
 #include <span>
 #include <ranges>
 
 using namespace fb2k_ncm;
 
-t_size fb2k_ncm::ncm_file::read(void *p_buffer, t_size p_bytes, abort_callback &p_abort) {
-    if (!rc4_decrypter_.is_valid()) {
-        ERROR_LOG("Decryptor error.");
-        throw exception_io();
-    } else {
-        auto source_pos = source_->get_position(p_abort);
-        auto read_offset = source_pos - parsed_file_.audio_content_offset;
-        std::vector<uint8_t> enc(p_bytes);
-
-        t_size total = 0;
-        total = source_->read(enc.data(), p_bytes, p_abort);
-        if (!total) {
-            return 0;
-        }
-
-        auto dec = rc4_decrypter_.reset_counter(read_offset).transform(enc);
-        std::span<uint8_t> output(static_cast<uint8_t *>(p_buffer), p_bytes);
-        std::copy(std::begin(dec), std::end(dec), std::begin(output));
-        DEBUG_LOG("Read at ", read_offset, " (", source_pos, ") : req=", p_bytes, " real=", total);
-        return total;
+inline void ncm_file::ensure_audio_offset() {
+    if (!parsed_file_.audio_content_offset) [[unlikely]] {
+        uBugCheck();
     }
+}
+
+inline void ncm_file::ensure_decryptor() {
+    if (!rc4_decryptor_.is_valid()) [[unlikely]] {
+        throw exception_io();
+    }
+}
+// helper macro: current function being logged will be at the right place
+#define ENSURE_DECRYPTOR()                 \
+    do {                                   \
+        try {                              \
+            ncm_file::ensure_decryptor();  \
+        } catch (...) {                    \
+            ERROR_LOG("Decryptor error."); \
+            throw;                         \
+        }                                  \
+    } while (0)
+
+inline void ncm_file::throw_format_error(const char *extra) {
+    ERROR_LOG("Unsupported format or corrupted file (", extra, ").");
+    throw exception_io_unsupported_format();
+}
+
+inline void ncm_file::throw_format_error(const std::string &extra) {
+    throw_format_error(extra.c_str());
+}
+
+t_size fb2k_ncm::ncm_file::read(void *p_buffer, t_size p_bytes, abort_callback &p_abort) {
+    ensure_audio_offset();
+    ENSURE_DECRYPTOR();
+    auto source_pos = source_->get_position(p_abort);
+    auto read_offset = source_pos - parsed_file_.audio_content_offset;
+    std::vector<uint8_t> enc(p_bytes);
+
+    t_size total = 0;
+    total = source_->read(enc.data(), p_bytes, p_abort);
+    if (!total) [[unlikely]] {
+        return 0;
+    }
+
+    auto dec = rc4_decryptor_.reset_counter(read_offset).transform(enc);
+    std::span<uint8_t> output(static_cast<uint8_t *>(p_buffer), p_bytes);
+    std::copy(std::begin(dec), std::end(dec), std::begin(output));
+    DEBUG_LOG_F("Read at {} ({}): req={}, real={}", read_offset, source_pos, p_bytes, total);
+    return total;
 }
 
 /// @attention This function is not implemented / not in use
 void fb2k_ncm::ncm_file::write(const void *p_buffer, t_size p_bytes, abort_callback &p_abort) {
+    ensure_audio_offset();
     auto source_pos = source_->get_position(p_abort);
     if (source_pos < parsed_file_.audio_content_offset) {
         ERROR_LOG("Modification (metadata) on a ncm file is not supported.");
         throw exception_io_denied_readonly();
     }
     auto write_offset = source_pos - parsed_file_.audio_content_offset;
-    auto transform = rc4_decrypter_.get_transform();
-    auto _tmp = std::make_unique<uint8_t[]>(p_bytes);
-    for (size_t i = 0; i < p_bytes; ++i) {
-        _tmp[i] = transform(static_cast<const uint8_t *>(p_buffer)[i], (write_offset & 0xff) + i);
-    }
-    return source_->write(_tmp.get(), p_bytes, p_abort);
+    std::span<const uint8_t> input(static_cast<const uint8_t *>(p_buffer), p_bytes);
+    auto enc = rc4_decryptor_.reset_counter(write_offset).transform(input);
+    std::vector<uint8_t> buf(enc.begin(), enc.end());
+
+    source_->write(buf.data(), buf.size(), p_abort);
+    DEBUG_LOG_F("Write to {} ({}): {} bytes", write_offset, source_pos, p_bytes);
 }
 
 t_filesize fb2k_ncm::ncm_file::get_size(abort_callback &p_abort) {
@@ -61,8 +90,9 @@ t_filesize fb2k_ncm::ncm_file::get_position(abort_callback &p_abort) {
 }
 
 void fb2k_ncm::ncm_file::resize(t_filesize p_size, abort_callback &p_abort) {
-    ERROR_LOG("Modification (resize) on a ncm file is not supported.");
-    throw exception_io_denied_readonly();
+    DEBUG_LOG_F("RESIZE ncm_file::resize({})", p_size);
+    ensure_audio_offset();
+    return source_->resize(parsed_file_.audio_content_offset + p_size, p_abort);
 }
 
 void fb2k_ncm::ncm_file::seek(t_filesize p_position, abort_callback &p_abort) {
@@ -80,10 +110,11 @@ bool fb2k_ncm::ncm_file::get_content_type(pfc::string_base &p_out) {
 }
 
 void fb2k_ncm::ncm_file::reopen(abort_callback &p_abort) {
+    // TODO: reparse the file
     source_->reopen(p_abort);
-    if (parsed_file_.audio_content_offset) {
-        source_->seek(parsed_file_.audio_content_offset, p_abort);
-    }
+    parse(parse_targets::NCM_PARSE_META | parse_targets::NCM_PARSE_ALBUM | parse_targets::NCM_PARSE_AUDIO);
+    ensure_audio_offset();
+    source_->seek(parsed_file_.audio_content_offset, p_abort);
 }
 
 bool fb2k_ncm::ncm_file::is_remote() {
@@ -94,21 +125,6 @@ t_filetimestamp fb2k_ncm::ncm_file::get_timestamp(abort_callback &p_abort) {
     return source_->get_timestamp(p_abort);
 }
 
-void ncm_file::ensure_audio_offset() {
-    if (!parsed_file_.audio_content_offset) {
-        uBugCheck();
-    }
-}
-
-inline void ncm_file::throw_format_error(const char *extra) {
-    ERROR_LOG("Unsupported format or corrupted file (", extra, ").");
-    throw exception_io_unsupported_format();
-}
-
-inline void ncm_file::throw_format_error(std::string extra) {
-    throw_format_error(extra.c_str());
-}
-
 auto ncm_file::make_seek_guard(abort_callback &p_abort) {
     return std::unique_ptr<void, std::function<void(void *)>>(nullptr, [this, &p_abort, p = source_->get_position(p_abort)](void *) {
         // RAII guard, will seek back when function returns
@@ -117,54 +133,70 @@ auto ncm_file::make_seek_guard(abort_callback &p_abort) {
 }
 
 void ncm_file::parse(uint16_t to_parse /* = 0xff*/) {
+
+    // NOTE:
+    // This is basically a state-driven function.
+    // But we don't need an actual state table, because the parsing process is linear.
+    // We just do `goto`s to jump to the next state.
+
     DEBUG_LOG("Parse (C=", to_parse, ") ", this_path_);
 
     auto &p_abort = fb2k::noAbort;
     auto _seek_guard_ = make_seek_guard(p_abort);
-
     source_->seek_ex(0, file::t_seek_mode::seek_from_beginning, p_abort);
 
     uint64_t magic = 0;
     source_->read(&magic, sizeof(uint64_t), p_abort);
-    if (magic != parsed_file_.magic) {
-        throw_format_error(std::string("magic number mismatch: ") + std::to_string(magic));
+    if (magic != parsed_file_.magic) [[unlikely]] {
+        throw_format_error(fmt::format("magic number mismatch: {}", magic));
     }
 
     // skip gap
     source_->seek_ex(2, file::t_seek_mode::seek_from_current, p_abort);
-
     // extract rc4 key for audio content decoding
     source_->read(&parsed_file_.rc4_seed_len, sizeof(parsed_file_.rc4_seed_len), p_abort);
-    if (to_parse & parse_contents::NCM_PARSE_AUDIO) {
-        if (0 == parsed_file_.rc4_seed_len || parsed_file_.rc4_seed_len > 256) {
+    if (!(to_parse & parse_targets::NCM_PARSE_AUDIO)) {
+        source_->seek_ex(parsed_file_.rc4_seed_len, file::t_seek_mode::seek_from_current, p_abort);
+        goto STATE_END_AUDIORC4;
+    } else {
+        if (0 == parsed_file_.rc4_seed_len || parsed_file_.rc4_seed_len > 256 || (parsed_file_.rc4_seed_len % cipher::AES_BLOCKSIZE))
+            [[unlikely]] {
             throw_format_error("rc4 key length error");
         }
-        auto data_size = cipher::aligned(parsed_file_.rc4_seed_len);
-        auto data = std::make_unique<uint8_t[]>(data_size);
-        source_->read(data.get(), parsed_file_.rc4_seed_len, p_abort);
-        std::for_each_n(data.get(), parsed_file_.rc4_seed_len, [](uint8_t &_b) { _b ^= 0x64; });
+        // NOTE: rc4 key is encrypted by AES
+        auto rc4key_raw = std::make_unique<uint8_t[]>(parsed_file_.rc4_seed_len);
+        source_->read(rc4key_raw.get(), parsed_file_.rc4_seed_len, p_abort);
+        std::for_each_n(rc4key_raw.get(), parsed_file_.rc4_seed_len, [](uint8_t &_b) { _b ^= 0x64; });
         cipher::make_AES_context_with_key(ncm_rc4_seed_aes_key)
             .set_chain_mode(cipher::aes_chain_mode::ECB)
-            .set_input(data.get(), parsed_file_.rc4_seed_len)
-            .set_output(data.get(), data_size)
+            .set_input(rc4key_raw.get(), parsed_file_.rc4_seed_len)
+            .set_output(rc4key_raw.get(), parsed_file_.rc4_seed_len)
             .decrypt_all();
-        if (strncmp(reinterpret_cast<char *>(data.get()), "neteasecloudmusic", 17)) {
+        constexpr std::string_view rc4key_magic = "neteasecloudmusic";
+        if (memcmp(rc4key_raw.get(), rc4key_magic.data(), rc4key_magic.size())) [[unlikely]] {
             throw_format_error("wrong rc4 key magic");
         }
-        rc4_decrypter_ = cipher::abnormal_RC4(
-            {data.get() + 17, data.get() + parsed_file_.rc4_seed_len - cipher::guess_padding(data.get() + parsed_file_.rc4_seed_len)});
-        parsed_file_.rc4_seed_ = rc4_decrypter_.key_seed.data();
-    } else {
-        source_->seek_ex(parsed_file_.rc4_seed_len, file::t_seek_mode::seek_from_current, p_abort);
+        {
+            auto _beg = rc4key_raw.get();
+            auto _end = rc4key_raw.get() + parsed_file_.rc4_seed_len;
+            _beg += rc4key_magic.size();
+            _end -= cipher::guess_padding(_end);
+            rc4_decryptor_ = cipher::abnormal_RC4(_beg, _end);
+            parsed_file_.rc4_seed = rc4_decryptor_.key_seed().data();
+        }
     }
+STATE_END_AUDIORC4:
     // get meta info json
     source_->read(&parsed_file_.meta_len, sizeof(parsed_file_.meta_len), p_abort);
-    if (to_parse & parse_contents::NCM_PARSE_META) {
-        if (0 == parsed_file_.meta_len) {
+    if (!(to_parse & parse_targets::NCM_PARSE_META)) {
+        source_->seek_ex(parsed_file_.meta_len, file::t_seek_mode::seek_from_current, p_abort);
+        goto STATE_END_META;
+    } else {
+        if (0 == parsed_file_.meta_len) [[unlikely]] {
             FB2K_console_formatter() << "[WARN] No meta data found in ncm file: " << this_path_;
             meta_str_ = "{}"; // meta_parsed() is determined by the content of meta_str_
             meta_json_.Parse(meta_str_.c_str());
-            goto ENDMETA;
+            goto STATE_END_META;
         } else {
             auto meta_b64 = std::make_unique<char[]>(parsed_file_.meta_len + 1);
             source_->read(meta_b64.get(), parsed_file_.meta_len, p_abort);
@@ -185,11 +217,11 @@ void ncm_file::parse(uint16_t to_parse /* = 0xff*/) {
                              .outputted_len();
             total -= cipher::guess_padding(meta_raw.get() + meta_decrypt_buffer_size);
             meta_raw[total] = '\0';
-            if (strncmp(reinterpret_cast<const char *>(meta_raw.get()), "music:", 6)) {
+            if (memcmp(meta_raw.get(), "music:", 6)) {
                 throw_format_error("wrong meta info schema");
             }
             // skip heading `music:`
-            meta_str_.assign(reinterpret_cast<const char *>(&meta_raw[6]));
+            meta_str_.assign(reinterpret_cast<const char *>(&meta_raw[6]), reinterpret_cast<const char *>(&meta_raw[total]));
             parsed_file_.meta_content = reinterpret_cast<uint8_t *>(meta_str_.data());
             meta_json_.Parse(meta_str_.c_str());
             if (!meta_json_.IsObject()) {
@@ -198,40 +230,36 @@ void ncm_file::parse(uint16_t to_parse /* = 0xff*/) {
                 DEBUG_LOG("Metainfo str: ", meta_str_.c_str());
             }
         }
-    } else {
-        source_->seek_ex(parsed_file_.meta_len, file::t_seek_mode::seek_from_current, p_abort);
     }
 
-ENDMETA:
+STATE_END_META:
     // skip gap
     source_->seek_ex(sizeof(parsed_file_.unknown_data), file::t_seek_mode::seek_from_current, p_abort);
     // get album image
     source_->read(&parsed_file_.album_image_size, sizeof(parsed_file_.album_image_size), p_abort);
-    if (to_parse & parse_contents::NCM_PARSE_ALBUM) {
+    if (!(to_parse & parse_targets::NCM_PARSE_ALBUM)) {
+        source_->seek_ex(parsed_file_.album_image_size[0], file::t_seek_mode::seek_from_current, p_abort);
+        goto STATE_END_ALBUMIMG;
+    } else {
         if (!parsed_file_.album_image_size[0]) {
             FB2K_console_formatter() << "[WARN] No album image found in ncm file: " << this_path_;
-            goto ENDIMG;
+            goto STATE_END_ALBUMIMG;
         }
         parsed_file_.album_image_offset = source_->get_position(p_abort);
         image_data_.resize(parsed_file_.album_image_size[0]);
         source_->read(image_data_.data(), image_data_.size(), p_abort);
         parsed_file_.album_image = image_data_.data();
-    } else {
-        source_->seek_ex(parsed_file_.album_image_size[0], file::t_seek_mode::seek_from_current, p_abort);
     }
-ENDIMG:
+STATE_END_ALBUMIMG:
     // remember where audio content starts
     parsed_file_.audio_content_offset = source_->get_position(p_abort);
 }
 
 bool ncm_file::save_raw_audio(const char *to_dir, abort_callback &p_abort) {
     if (!audio_parsed() || !meta_parsed()) {
-        parse(parse_contents::NCM_PARSE_AUDIO | parse_contents::NCM_PARSE_META);
+        parse(parse_targets::NCM_PARSE_AUDIO | parse_targets::NCM_PARSE_META);
     }
-    if (!rc4_decrypter_.is_valid()) {
-        ERROR_LOG("Decryptor error.");
-        throw exception_io();
-    }
+    ENSURE_DECRYPTOR();
     auto ext = [this] {
         if (bool ok = meta_info().HasMember("format"); ok) {
             std::string format = std::string(meta_info()["format"].GetString());

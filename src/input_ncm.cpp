@@ -28,11 +28,14 @@ inline bool fb2k_ncm::input_ncm::g_is_our_content_type(const char *p_content_typ
 
 inline void fb2k_ncm::input_ncm::retag(const file_info &p_info, abort_callback &p_abort) {
     // TODO: support of retagging on audio content (with ncm wrapper and meta info not touched)
-    throw exception_tagging_unsupported();
+    DEBUG_LOG("input_ncm::retag()");
+    source_info_writer_->set_info(0, p_info, p_abort);
+    source_info_writer_->commit(p_abort);
 }
 
 inline void fb2k_ncm::input_ncm::remove_tags(abort_callback &p_abort) {
-    throw exception_tagging_unsupported();
+    DEBUG_LOG("input_ncm::remove_tags()");
+    source_info_writer_->remove_tags_fallback(p_abort);
 }
 
 inline bool fb2k_ncm::input_ncm::decode_can_seek() {
@@ -40,35 +43,40 @@ inline bool fb2k_ncm::input_ncm::decode_can_seek() {
 }
 
 void input_ncm::open(foobar2000_io::file::ptr p_filehint, const char *p_path, t_input_open_reason p_reason, abort_callback &p_abort) {
-    if (p_reason == t_input_open_reason::input_open_info_write) {
-        ERROR_LOG("Modification on a ncm file is not supported.");
-        throw exception_io_unsupported_format();
-    }
-    if (ncm_file_.is_empty()) {
-        if (std::string checked_path(p_path); checked_path.length()) { // open from filesystem
-            DEBUG_LOG("input_ncm::open (", p_path, ") for reason ", p_reason);
+
+    if (std::string checked_path(p_path); checked_path.length()) { // available from filesystem
+        DEBUG_LOG_F("input_ncm::open() for {} => {}", p_reason, p_path);
+        switch (p_reason) {
+        case t_input_open_reason::input_open_decode:
+            [[fallthrough]];
+        case t_input_open_reason::input_open_info_read:
             ncm_file_ = fb2k::service_new<ncm_file>(p_path);
-            if (!ncm_file_.is_valid()) {
-                ERROR_LOG("Failed to open file: ", p_path);
-                throw exception_io_not_found();
-            }
-        } else if (p_filehint.is_valid()) { // attach an opened ncm_file
-            if (p_filehint->cast(ncm_file_)) {
-                DEBUG_LOG("input_ncm::open (", ncm_file_->path(), ") for reason ", p_reason, " (from file hint)");
-            } else {
-                DEBUG_LOG("input_ncm::open cast from file_ptr failed, reason=", p_reason);
-                throw exception_io_unsupported_feature();
-            }
-        } else {
-            ERROR_LOG("Open ncm file failed (invalid file hint).");
-            throw exception_io_no_handler_for_path();
+            break;
+        case t_input_open_reason::input_open_info_write:
+            ncm_file_ = fb2k::service_new<ncm_file>(p_path, filesystem::open_mode_write_existing);
+            break;
+        default:
+            throw exception_io_unsupported_feature();
         }
+        if (ncm_file_.is_empty()) [[unlikely]] {
+            uBugCheck();
+        }
+    } else if (p_filehint.is_valid()) { // attach an opened ncm_file
+        if (p_filehint->cast(ncm_file_)) {
+            DEBUG_LOG("input_ncm::open (", ncm_file_->path(), ") for reason ", p_reason, " (from file hint)");
+        } else {
+            DEBUG_LOG("input_ncm::open cast from file_ptr failed, reason=", p_reason);
+            throw exception_io_unsupported_feature();
+        }
+    } else {
+        ERROR_LOG("Open ncm file failed (invalid file hint).");
+        throw exception_io_no_handler_for_path();
     }
 
     // walk through the file structure
     // parse() won't decrypt the whole file, so we can always parse metadata and audio info at the same time.
     if (!(ncm_file_->meta_parsed() && ncm_file_->audio_parsed())) {
-        ncm_file_->parse(ncm_file::parse_contents::NCM_PARSE_META | ncm_file::parse_contents::NCM_PARSE_AUDIO);
+        ncm_file_->parse(ncm_file::parse_targets::NCM_PARSE_META | ncm_file::parse_targets::NCM_PARSE_AUDIO);
     }
 
     // find any available decoders by the following steps:
@@ -144,6 +152,10 @@ void input_ncm::open(foobar2000_io::file::ptr p_filehint, const char *p_path, t_
     if (p_reason == t_input_open_reason::input_open_info_read) {
         input_ptr->open_for_info_read(source_info_reader_, ncm_file_, /*p_path*/ "", p_abort);
     }
+    if (p_reason == t_input_open_reason::input_open_info_write) {
+        DEBUG_LOG("Attempt to write to ncm file.");
+        input_ptr->open_for_info_write(source_info_writer_, ncm_file_, /*p_path*/ "", p_abort);
+    }
 }
 
 void input_ncm::decode_seek(double p_seconds, abort_callback &p_abort) {
@@ -158,13 +170,11 @@ bool input_ncm::decode_run(audio_chunk &p_chunk, abort_callback &p_abort) {
 
 void input_ncm::decode_initialize(unsigned p_flags, abort_callback &p_abort) {
     // initialize should always follow open
-    ncm_file_->ensure_audio_offset();
     decoder_->initialize(/*no subsong*/ 0, p_flags, p_abort);
     DEBUG_LOG("decode_initialize() called");
 }
 
 t_filestats input_ncm::get_file_stats(abort_callback &p_abort) {
-    // return real file stats, which would be displayed on Properties/Location
     return ncm_file_->get_stats(p_abort);
 }
 

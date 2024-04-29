@@ -28,10 +28,10 @@ namespace fb2k_ncm
     struct ncm_file_st {
         uint64_t magic = ncm_magic;
         uint8_t unknown_padding[2];
-        uint32_t rc4_seed_len;
-        const uint8_t *rc4_seed_;
+        uint32_t rc4_seed_len; // length of rc4_seed *field*, padding included
+        const uint8_t *rc4_seed; // encrypted by AES, "neteasecloudmusic..."
         uint32_t meta_len;
-        const uint8_t *meta_content;
+        const uint8_t *meta_content; // base64 encoding, "163 key(Don't modify):${(AES encrypted)}"
         uint8_t unknown_data[5];
         uint32_t album_image_size[2]; // there are 2 exactly same field
         const uint8_t *album_image;
