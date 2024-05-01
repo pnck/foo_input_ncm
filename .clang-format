@@ -2,7 +2,7 @@
 AccessModifierOffset: -4
 
 # Align parameters on the open bracket
-AlignAfterOpenBracket: Align
+AlignAfterOpenBracket: 'Align'
 
 # Disallows contracting simple braced statements to a single line
 AllowShortBlocksOnASingleLine: 'false'
@@ -61,4 +61,19 @@ PenaltyReturnTypeOnItsOwnLine: 10000
 ForEachMacros:   [ foreach, Q_FOREACH, BOOST_FOREACH, GIVEN, WHEN, AND_WHEN, THEN, AND_THEN, SECTION ]
 
 SortIncludes: 'false'
-#...
+
+# https://stackoverflow.com/questions/73451931/changing-the-location-of-the-line-continuations-used-in-macros-with-clang
+AlignEscapedNewlines: Left
+
+# https://clang.llvm.org/docs/ClangFormatStyleOptions.html#breakafterattributes
+BreakAfterAttributes: 'Leave'
+
+# https://clang.llvm.org/docs/ClangFormatStyleOptions.html#alignarrayofstructures
+AlignArrayOfStructures: 'Left'
+
+# https://clang.llvm.org/docs/ClangFormatStyleOptions.html#binpackarguments
+BinPackArguments: 'false'
+BinPackParameters: 'false'
+
+# https://clang.llvm.org/docs/ClangFormatStyleOptions.html#alignoperands
+AlignOperands: 'AlignAfterOperator'

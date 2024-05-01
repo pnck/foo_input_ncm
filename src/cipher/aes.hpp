@@ -20,6 +20,9 @@ namespace fb2k_ncm::cipher
         { impl.decrypt_all() } -> std::same_as<decltype(impl) &>;
         { impl.decrypt_chunk(std::declval<size_t>()) } -> std::same_as<decltype(impl) &>;
         { impl.decrypt_next() } -> std::same_as<decltype(impl) &>;
+        { impl.encrypt_all() } -> std::same_as<decltype(impl) &>;
+        { impl.encrypt_chunk(std::declval<size_t>()) } -> std::same_as<decltype(impl) &>;
+        { impl.encrypt_next() } -> std::same_as<decltype(impl) &>;
         { impl.finish() };
         // properties
         { impl.chain_mode() } -> std::same_as<aes_chain_mode>;

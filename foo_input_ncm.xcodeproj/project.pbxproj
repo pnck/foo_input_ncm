@@ -41,9 +41,9 @@
 /* Begin PBXFileReference section */
 		A35F93C02BDBF18200ABAABA /* context_menu.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = context_menu.cpp; sourceTree = "<group>"; };
 		A35F93C12BDBF18200ABAABA /* context_menu.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = context_menu.hpp; sourceTree = "<group>"; };
-		A35F93C22BDBF18200ABAABA /* extraction_process.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = extraction_process.hpp; sourceTree = "<group>"; };
 		A35F93C62BDDF04600ABAABA /* log.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = log.hpp; sourceTree = "<group>"; };
 		A35F93C72BDDF04600ABAABA /* consts.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = consts.hpp; sourceTree = "<group>"; };
+		A35F94912BE17E3100ABAABA /* foo_input_ncm_tests.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = foo_input_ncm_tests.xcodeproj; path = test/unit/macos/foo_input_ncm_tests.xcodeproj; sourceTree = "<group>"; };
 		A3B7380C2BCCBC6700DF7424 /* foo_input_ncm.component */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = foo_input_ncm.component; sourceTree = BUILT_PRODUCTS_DIR; };
 		A3B738302BCCCF1A00DF7424 /* libpfc-Mac.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; path = "libpfc-Mac.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		A3B738732BCE313B00DF7424 /* libfoobar2000_component_client.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; path = libfoobar2000_component_client.a; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -98,17 +98,30 @@
 			children = (
 				A35F93C02BDBF18200ABAABA /* context_menu.cpp */,
 				A35F93C12BDBF18200ABAABA /* context_menu.hpp */,
-				A35F93C22BDBF18200ABAABA /* extraction_process.hpp */,
 			);
-			name = ui;
-			path = src/ui;
+			path = ui;
+			sourceTree = "<group>";
+		};
+		A35F94362BE167A100ABAABA /* Tests */ = {
+			isa = PBXGroup;
+			children = (
+				A35F94912BE17E3100ABAABA /* foo_input_ncm_tests.xcodeproj */,
+			);
+			name = Tests;
+			sourceTree = "<group>";
+		};
+		A35F94922BE17E3100ABAABA /* Products */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Products;
 			sourceTree = "<group>";
 		};
 		A3B738032BCCBC6700DF7424 = {
 			isa = PBXGroup;
 			children = (
-				A35F93C32BDBF18200ABAABA /* ui */,
 				A3B738962BCE497400DF7424 /* src */,
+				A35F94362BE167A100ABAABA /* Tests */,
 				A3B7380D2BCCBC6700DF7424 /* Products */,
 				A3B738292BCCCF1A00DF7424 /* Frameworks */,
 			);
@@ -168,6 +181,7 @@
 		A3B738962BCE497400DF7424 /* src */ = {
 			isa = PBXGroup;
 			children = (
+				A35F93C32BDBF18200ABAABA /* ui */,
 				A3B7387E2BCE497400DF7424 /* cipher */,
 				A3B738822BCE497400DF7424 /* common */,
 				A3B7388C2BCE497400DF7424 /* album_art_extractor.cpp */,
@@ -230,6 +244,12 @@
 			minimizedProjectReferenceProxies = 1;
 			productRefGroup = A3B7380D2BCCBC6700DF7424 /* Products */;
 			projectDirPath = "";
+			projectReferences = (
+				{
+					ProductGroup = A35F94922BE17E3100ABAABA /* Products */;
+					ProjectRef = A35F94912BE17E3100ABAABA /* foo_input_ncm_tests.xcodeproj */;
+				},
+			);
 			projectRoot = "";
 			targets = (
 				A3B7380B2BCCBC6700DF7424 /* foo_input_ncm */,
@@ -328,12 +348,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				HEADER_SEARCH_PATHS = (
-					"src/**",
-					vendor/,
-					vendor/sdk,
-					vendor/sdk/foobar2000,
-				);
+				HEADER_SEARCH_PATHS = "";
 				INCLUDED_RECURSIVE_SEARCH_PATH_SUBDIRECTORIES = src;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.music";
 				LIBRARY_SEARCH_PATHS = "";
@@ -402,12 +417,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				HEADER_SEARCH_PATHS = (
-					"src/**",
-					vendor/,
-					vendor/sdk,
-					vendor/sdk/foobar2000,
-				);
+				HEADER_SEARCH_PATHS = "";
 				INCLUDED_RECURSIVE_SEARCH_PATH_SUBDIRECTORIES = src;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.music";
 				LIBRARY_SEARCH_PATHS = "";
@@ -446,7 +456,7 @@
 				INFOPLIST_KEY_NSPrincipalClass = "";
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Bundles";
 				MACOSX_DEPLOYMENT_TARGET = 13.3;
-				MARKETING_VERSION = 0.4.0;
+				MARKETING_VERSION = 0.5.0;
 				ONLY_ACTIVE_ARCH = NO;
 				PRODUCT_BUNDLE_IDENTIFIER = "pnck.foo-input-ncm";
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -481,7 +491,7 @@
 				INFOPLIST_KEY_NSPrincipalClass = "";
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Bundles";
 				MACOSX_DEPLOYMENT_TARGET = 13.3;
-				MARKETING_VERSION = 0.4.0;
+				MARKETING_VERSION = 0.5.0;
 				ONLY_ACTIVE_ARCH = NO;
 				PRODUCT_BUNDLE_IDENTIFIER = "pnck.foo-input-ncm";
 				PRODUCT_NAME = "$(TARGET_NAME)";

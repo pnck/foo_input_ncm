@@ -25,6 +25,18 @@ typedef DWORD DWORD;
 
 #elif defined __APPLE__
 #include <CommonCrypto/CommonCryptoError.h>
+#include <cerrno>
+
+#if 0
+namespace std
+{
+    template <typename... T>
+    [[nodiscard]] inline auto format(fmt::format_string<T...> fmt, T &&...args) {
+        return fmt::format(fmt, std::forward<T>(args)...);
+    }
+} // namespace std
+#endif
+
 #define SUCCESS(Status) ((Status) == kCCSuccess)
 
 typedef CCCryptorStatus STATUS;
@@ -36,3 +48,7 @@ inline auto GetLastError() {
 #define COMMON_ERROR kCCUnspecifiedError
 
 #endif
+
+// since we are using spdlog, we can use fmt::format instead of std::format,
+// which is still unavailable (as of libc++15, within macos-14 github action runner)
+#include "spdlog/fmt/bundled/format.h"

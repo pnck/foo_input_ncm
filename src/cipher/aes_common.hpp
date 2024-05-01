@@ -27,7 +27,7 @@ namespace fb2k_ncm::cipher::details
         virtual void do_prepare() = 0;
         // additional finish operations
         virtual void do_finish() = 0;
-        // virtual size_t do_encrypt(uint8_t *dst, size_t cb_dst, const uint8_t *src, const size_t cb_src) = 0;
+        virtual size_t do_encrypt(const aes_chain_mode M, uint8_t *dst, const size_t cb_dst, const uint8_t *src, const size_t cb_src) = 0;
         virtual size_t do_decrypt(const aes_chain_mode M, uint8_t *dst, const size_t cb_dst, const uint8_t *src, const size_t cb_src) = 0;
 
     public:
@@ -63,12 +63,23 @@ namespace fb2k_ncm::cipher::details
         void set_output(std::vector<uint8_t> &output);
         void set_output(uint8_t *output, size_t size);
         void set_chain_mode(aes_chain_mode mode);
-        void decrypt_all();
         void decrypt_chunk(size_t chunk_size);
         void decrypt_next();
+        void decrypt_all();
+        void encrypt_chunk(size_t chunk_size);
+        void encrypt_next();
+        void encrypt_all();
         void finish();
 
+    private:
+        // reduce reapeted code
+        enum class OP { DEC, ENC };
+
+        template <OP op>
+        void universal_chunk_op(size_t chunk_size);
+
     protected:
+        // expose chainable operations for inherited classes, since we are not using virtual functions
         template <typename D, typename F, typename... ARGS>
             requires std::derived_from<D, AES_context_common>
         inline D &make_chain_op(F &&f, ARGS &&...args) {

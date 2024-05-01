@@ -42,6 +42,9 @@
   <ImportGroup Label="PropertySheets" />
   <PropertyGroup Label="UserMacros" />
   <ItemGroup>
+    <ClInclude Include="..\..\..\src\cipher\aes.hpp" />
+    <ClInclude Include="..\..\..\src\cipher\aes_common.hpp" />
+    <ClInclude Include="..\..\..\src\cipher\aes_win32.hpp" />
     <ClInclude Include="stdafx.h" />
   </ItemGroup>
   <ItemGroup>
