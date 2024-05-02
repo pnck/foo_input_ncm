@@ -76,17 +76,17 @@ jobs:
         working-directory: ${{ github.workspace }}/vendor/googletest
         run: |
           mkdir build
-          cd build && cmake -G Xcode ..
+          cd build && cmake -G Xcode cmake -DCMAKE_BUILD_TYPE=${{ matrix.config }} ..
 
       - name: Build Tests
         working-directory: ${{ github.workspace }}
         run: |
-          xcodebuild clean build -workspace foo_input_ncm.xcworkspace -scheme foo_input_ncm_tests  -configuration ${{ matrix.config }} -derivedDataPath .
+          xcodebuild clean build -workspace foo_input_ncm.xcworkspace -scheme foo_input_ncm_tests -configuration ${{ matrix.config }} -derivedDataPath .
 
       - name: Run Tests
         working-directory: ${{ github.workspace }}/Build/Products/${{ matrix.config }}
         run: |
-          ./foo_input_ncm_tests  --gtest_repeat=10 --gtest_shuffle
+          ./foo_input_ncm_tests --gtest_repeat=10 --gtest_shuffle
 
   matrix-build:
     name: Matrix Build
@@ -120,8 +120,8 @@ jobs:
 
       - name: Versioning
         run: |
-          TAG=$(git describe --tags)
-          VERSION=${TAG:1}
+          TAG=$(git describe --long --all)
+          VERSION=${TAG:6} 
           echo "#define CURRENT_VERSION $VERSION" >> src/stdafx.h
           echo "----------------------------"
           cat src/stdafx.h
@@ -150,7 +150,7 @@ jobs:
         env:
           scheme: foo_input_ncm-${{ matrix.config }}
         run: |
-          xcodebuild clean build -workspace ${{ matrix.workspace }} -scheme "$scheme" -configuration ${{ matrix.config }}
+          xcodebuild clean build -workspace ${{ matrix.workspace }} -scheme "$scheme" -configuration ${{ matrix.config }} -sdk macosx -mmacosx-version-min=13.3
         if: matrix.os == 'macos-14'
 
       - name: (MSBuild) Setup MSBuild

@@ -148,7 +148,7 @@ void ncm_file::parse(uint16_t to_parse /* = 0xff*/) {
     uint64_t magic = 0;
     source_->read(&magic, sizeof(uint64_t), p_abort);
     if (magic != parsed_file_.magic) [[unlikely]] {
-        throw_format_error(fmt::format("magic number mismatch: {}", magic));
+        throw_format_error(fmtlib::format("magic number mismatch: {}", magic));
     }
 
     // skip gap

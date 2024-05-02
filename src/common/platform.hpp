@@ -23,9 +23,17 @@ typedef DWORD DWORD;
 #define KEYSIZE_ERROR STATUS_INVALID_PARAMETER
 #define COMMON_ERROR STATUS_UNSUCCESSFUL
 
+#include <format>
+namespace fmtlib = std;
+
 #elif defined __APPLE__
 #include <CommonCrypto/CommonCryptoError.h>
 #include <cerrno>
+
+// since we are using spdlog, we can use fmt::format instead of std::format,
+// which is still unavailable (as of libc++15, within macos-14 github action runner)
+#include "spdlog/fmt/fmt.h"
+namespace fmtlib = fmt;
 
 #if 0
 namespace std
@@ -48,7 +56,3 @@ inline auto GetLastError() {
 #define COMMON_ERROR kCCUnspecifiedError
 
 #endif
-
-// since we are using spdlog, we can use fmt::format instead of std::format,
-// which is still unavailable (as of libc++15, within macos-14 github action runner)
-#include "spdlog/fmt/bundled/format.h"

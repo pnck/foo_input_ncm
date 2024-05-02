@@ -26,7 +26,7 @@ protected:
 
         // random plain text
         auto len = arc4random_uniform(128);
-        len = (len + 10) % 128;
+        len = (len % 128) + 10;
         random_plain_.resize(len);
         arc4random_buf(random_plain_.data(), random_plain_.size());
         decltype(random_plain_) _end = {'E', 'N', 'D', 'O', 'F', 'P', 'L', 'A', 'I', 'N'};

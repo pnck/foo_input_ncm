@@ -14,7 +14,7 @@ namespace fb2k_ncm::cipher
         explicit cipher_error(std::string reason, STATUS status) : std::runtime_error(""), status_(status), reason_(std::move(reason)) {
             last_error_ = GetLastError();
             std::stringstream err_ss;
-            msg_ = fmt::format("cipher runtime error because of [{}] \n  Last Error: 0x{:08X}\n  STATUS: 0x{:08X}",
+            msg_ = fmtlib::format("cipher runtime error because of [{}] \n  Last Error: 0x{:08X}\n  STATUS: 0x{:08X}",
                                reason_,
                                last_error_,
                                static_cast<uint32_t>(status_));

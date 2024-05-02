@@ -109,7 +109,7 @@ jobs:
         env:
           scheme: foo_input_ncm-${{ matrix.config }}
         run: |
-          xcodebuild clean build -workspace ${{ matrix.workspace }} -scheme "$scheme" -configuration ${{ matrix.config }}
+          xcodebuild clean build -workspace ${{ matrix.workspace }} -scheme "$scheme" -configuration ${{ matrix.config }} -sdk macosx -mmacosx-version-min=13.3
         if: matrix.os == 'macos-14'
 
       - name: (MSBuild) Setup MSBuild

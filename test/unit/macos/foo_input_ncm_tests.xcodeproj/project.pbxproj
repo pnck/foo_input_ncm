@@ -8,10 +8,10 @@
 
 /* Begin PBXBuildFile section */
 		A35F94992BE17E7100ABAABA /* test_crypto_functionality.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A35F94972BE17E7100ABAABA /* test_crypto_functionality.cpp */; };
-		A35F94BA2BE17F0B00ABAABA /* libgtest_main.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A35F94B82BE17F0300ABAABA /* libgtest_main.a */; };
-		A35F94BB2BE17F0B00ABAABA /* libgtest.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A35F94B62BE17F0300ABAABA /* libgtest.a */; };
 		A35F94C32BE1813800ABAABA /* aes_common.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A35F94C12BE1813800ABAABA /* aes_common.cpp */; };
 		A35F94C42BE1813800ABAABA /* aes_macos.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A35F94C22BE1813800ABAABA /* aes_macos.cpp */; };
+		A35F94CE2BE31FBE00ABAABA /* libgtest_main.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A35F94B82BE17F0300ABAABA /* libgtest_main.a */; settings = {ATTRIBUTES = (Required, ); }; };
+		A35F94CF2BE31FBE00ABAABA /* libgtest.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A35F94B62BE17F0300ABAABA /* libgtest.a */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -27,6 +27,20 @@
 			containerPortal = A35F94AC2BE17F0300ABAABA /* googletest-distribution.xcodeproj */;
 			proxyType = 2;
 			remoteGlobalIDString = 0687E84752724FAFBE8BF815;
+			remoteInfo = gtest_main;
+		};
+		A35F94D02BE3286000ABAABA /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A35F94AC2BE17F0300ABAABA /* googletest-distribution.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = BE4A6BB60264456AB04086C8;
+			remoteInfo = gtest;
+		};
+		A35F94D22BE3286000ABAABA /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A35F94AC2BE17F0300ABAABA /* googletest-distribution.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 4001D1E151AD4D3DB34BE895;
 			remoteInfo = gtest_main;
 		};
 /* End PBXContainerItemProxy section */
@@ -57,8 +71,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				A35F94BA2BE17F0B00ABAABA /* libgtest_main.a in Frameworks */,
-				A35F94BB2BE17F0B00ABAABA /* libgtest.a in Frameworks */,
+				A35F94CE2BE31FBE00ABAABA /* libgtest_main.a in Frameworks */,
+				A35F94CF2BE31FBE00ABAABA /* libgtest.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -116,6 +130,8 @@
 			buildRules = (
 			);
 			dependencies = (
+				A35F94D12BE3286000ABAABA /* PBXTargetDependency */,
+				A35F94D32BE3286000ABAABA /* PBXTargetDependency */,
 			);
 			name = foo_input_ncm_tests;
 			productName = foo_input_ncm_tests;
@@ -190,6 +206,19 @@
 		};
 /* End PBXSourcesBuildPhase section */
 
+/* Begin PBXTargetDependency section */
+		A35F94D12BE3286000ABAABA /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = gtest;
+			targetProxy = A35F94D02BE3286000ABAABA /* PBXContainerItemProxy */;
+		};
+		A35F94D32BE3286000ABAABA /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = gtest_main;
+			targetProxy = A35F94D22BE3286000ABAABA /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
 /* Begin XCBuildConfiguration section */
 		A35F94862BE17DF500ABAABA /* Debug */ = {
 			isa = XCBuildConfiguration;
@@ -244,7 +273,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MACOSX_DEPLOYMENT_TARGET = 13.3;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -299,9 +328,10 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MACOSX_DEPLOYMENT_TARGET = 13.3;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = macosx;
 			};
 			name = Release;
