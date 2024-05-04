@@ -90,7 +90,7 @@
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <LanguageStandard_C>stdc11</LanguageStandard_C>
-      <AdditionalIncludeDirectories>src;vendor/spdlog/include;vendor/rapidjson/include;vendor/sdk;vendor/sdk/foobar2000</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>src;vendor/spdlog/include;vendor/json/include;vendor/sdk;vendor/sdk/foobar2000</AdditionalIncludeDirectories>
       <AdditionalOptions>/Zc:__cplusplus %(AdditionalOptions)</AdditionalOptions>
       <PrecompiledHeader>Use</PrecompiledHeader>
     </ClCompile>
@@ -116,7 +116,7 @@
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <LanguageStandard_C>stdc11</LanguageStandard_C>
-      <AdditionalIncludeDirectories>src;vendor/spdlog/include;vendor/rapidjson/include;vendor/sdk;vendor/sdk/foobar2000</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>src;vendor/spdlog/include;vendor/json/include;vendor/sdk;vendor/sdk/foobar2000</AdditionalIncludeDirectories>
       <AdditionalOptions>/Zc:__cplusplus %(AdditionalOptions)</AdditionalOptions>
       <PrecompiledHeader>Use</PrecompiledHeader>
     </ClCompile>
@@ -140,7 +140,7 @@
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <LanguageStandard_C>stdc11</LanguageStandard_C>
-      <AdditionalIncludeDirectories>src;vendor/spdlog/include;vendor/rapidjson/include;vendor/sdk;vendor/sdk/foobar2000</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>src;vendor/spdlog/include;vendor/json/include;vendor/sdk;vendor/sdk/foobar2000</AdditionalIncludeDirectories>
       <AdditionalOptions>/Zc:__cplusplus %(AdditionalOptions)</AdditionalOptions>
       <PrecompiledHeader>Use</PrecompiledHeader>
     </ClCompile>
@@ -168,7 +168,7 @@ copy $(TargetPath)  $(ProjectDir)dist\$(Platform)\</Command>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <LanguageStandard_C>stdc11</LanguageStandard_C>
-      <AdditionalIncludeDirectories>src;vendor/spdlog/include;vendor/rapidjson/include;vendor/sdk;vendor/sdk/foobar2000</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>src;vendor/spdlog/include;vendor/json/include;vendor/sdk;vendor/sdk/foobar2000</AdditionalIncludeDirectories>
       <AdditionalOptions>/Zc:__cplusplus %(AdditionalOptions)</AdditionalOptions>
       <PrecompiledHeader>Use</PrecompiledHeader>
     </ClCompile>

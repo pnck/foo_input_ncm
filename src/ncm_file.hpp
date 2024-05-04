@@ -3,13 +3,16 @@
 #include "stdafx.h"
 #include "common/consts.hpp"
 #include "cipher/cipher.h"
-#include "rapidjson/document.h"
+#include "nlohmann/json.hpp"
 
 #include <fstream>
 #include <string_view>
+#include <stdexcept>
 
 namespace fb2k_ncm
 {
+    using json = nlohmann::json;
+
     /// @note
     /// - FB2K_MAKE_SERVICE_INTERFACE() is used for creating service interfaces,
     /// which usually contain only pure virtual function declarations.
@@ -29,6 +32,7 @@ namespace fb2k_ncm
             NCM_PARSE_ALBUM = 0b10,
             NCM_PARSE_AUDIO = 0b100,
         };
+        struct meta_error; // exception indicating meta json parsing error
 
         struct ncm_file_parsed_st : public ncm_file_st {
             // ...
@@ -56,13 +60,17 @@ namespace fb2k_ncm
         }
         void parse(uint16_t to_parse = 0xffff);
         bool save_raw_audio(const char *to_dir, abort_callback &p_abort = fb2k::noAbort);
+        void overwrite_meta(const nlohmann::json &meta, abort_callback &p_abort = fb2k::noAbort);
+        void reset_album_image(album_art_data_ptr image, abort_callback &p_abort = fb2k::noAbort);
 
     private:
         inline void throw_format_error(const char *extra = nullptr);
         inline void throw_format_error(const std::string &extra);
         inline void ensure_audio_offset();
         inline void ensure_decryptor();
-        auto make_seek_guard(abort_callback &p_abort);
+        [[nodiscard]] auto make_seek_guard(abort_callback &p_abort = fb2k::noAbort);
+        //
+        void merge_overwrite_meta();
 
     public:
         inline auto &meta_info() { return meta_json_; }
@@ -80,7 +88,7 @@ namespace fb2k_ncm
         // using fschar = decltype(source_)::element_type::char_type;
 
         std::string meta_str_;
-        rapidjson::Document meta_json_;
+        nlohmann::json meta_json_;
         cipher::abnormal_RC4 rc4_decryptor_;
         std::vector<uint8_t> image_data_;
         std::string path_raw_saved_to_;
@@ -89,3 +97,8 @@ namespace fb2k_ncm
     FOOGUIDDECL constexpr GUID ncm_file::class_guid = guid_candidates[1];
 
 } // namespace fb2k_ncm
+
+struct fb2k_ncm::ncm_file::meta_error : public std::runtime_error {
+    meta_error(const char *msg) : std::runtime_error(fmtlib::format("meta error: {}", msg)) {}
+    meta_error(const std::string &msg) : std::runtime_error(fmtlib::format("meta error: {}", msg)) {}
+};

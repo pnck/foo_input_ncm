@@ -268,7 +268,7 @@ TEST_F(AESFuncitoalityTest, AES256AllIn1) {
 }
 
 TEST_F(AESFuncitoalityTest, Encryption) {
-#if 0
+#if 0 // NOTE: for debugging
     auto buffer = std::make_unique<uint8_t[]>(36);
     auto &_plain_data = *reinterpret_cast<uint8_t(*)[36]>((uint8_t *)(buffer.get()));
     memcpy(buffer.get(), "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890", 36);

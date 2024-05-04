@@ -44,6 +44,7 @@
 		A35F93C62BDDF04600ABAABA /* log.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = log.hpp; sourceTree = "<group>"; };
 		A35F93C72BDDF04600ABAABA /* consts.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = consts.hpp; sourceTree = "<group>"; };
 		A35F94912BE17E3100ABAABA /* foo_input_ncm_tests.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = foo_input_ncm_tests.xcodeproj; path = test/unit/macos/foo_input_ncm_tests.xcodeproj; sourceTree = "<group>"; };
+		A35F94D92BE457FF00ABAABA /* meta_processor.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = meta_processor.hpp; sourceTree = "<group>"; };
 		A3B7380C2BCCBC6700DF7424 /* foo_input_ncm.component */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = foo_input_ncm.component; sourceTree = BUILT_PRODUCTS_DIR; };
 		A3B738302BCCCF1A00DF7424 /* libpfc-Mac.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; path = "libpfc-Mac.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		A3B738732BCE313B00DF7424 /* libfoobar2000_component_client.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; path = libfoobar2000_component_client.a; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -170,6 +171,7 @@
 		A3B738822BCE497400DF7424 /* common */ = {
 			isa = PBXGroup;
 			children = (
+				A35F94D92BE457FF00ABAABA /* meta_processor.hpp */,
 				A35F93C72BDDF04600ABAABA /* consts.hpp */,
 				A35F93C62BDDF04600ABAABA /* log.hpp */,
 				A3B738802BCE497400DF7424 /* helpers.hpp */,
@@ -447,7 +449,7 @@
 				HEADER_SEARCH_PATHS = (
 					"src/**",
 					vendor/spdlog/include,
-					vendor/rapidjson/include,
+					vendor/json/include,
 					vendor/sdk,
 					vendor/sdk/foobar2000,
 				);
@@ -482,7 +484,7 @@
 				HEADER_SEARCH_PATHS = (
 					"src/**",
 					vendor/spdlog/include,
-					vendor/rapidjson/include,
+					vendor/json/include,
 					vendor/sdk,
 					vendor/sdk/foobar2000,
 				);

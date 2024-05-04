@@ -26,11 +26,40 @@ inline bool fb2k_ncm::input_ncm::g_is_our_content_type(const char *p_content_typ
     return stricmp_utf8_max(p_content_type, mime.data(), mime.size()) == 0;
 }
 
+/// @note
+/// - ReplayGain info and meta tags are stored in different places.
+/// The former is stored in the audio content, while the latter is stored in the ncm header.
+/// @note
+/// - See also: `ncm_file::overwrite_meta()`
 inline void fb2k_ncm::input_ncm::retag(const file_info &p_info, abort_callback &p_abort) {
-    // TODO: support of retagging on audio content (with ncm wrapper and meta info not touched)
     DEBUG_LOG("input_ncm::retag()");
-    source_info_writer_->set_info(0, p_info, p_abort);
+    // Replay Gain
+    file_info_impl cur_file_info;
+    source_info_reader_->get_info(0, cur_file_info, p_abort);
+    cur_file_info.set_replaygain(p_info.get_replaygain());
+    source_info_writer_->set_info(0, cur_file_info, p_abort);
     source_info_writer_->commit(p_abort);
+
+#if 0 // TODO: refactor
+
+    // Meta tags
+    rapidjson::Document meta(rapidjson::kObjectType);
+    auto &a = meta.GetAllocator();
+    for (auto name_entry = 0; name_entry < p_info.meta_get_count(); ++name_entry) {
+        auto name = p_info.meta_enum_name(name_entry);
+        auto val_count = p_info.meta_enum_value_count(name_entry);
+        if (val_count == 1) {
+            meta.AddMember(rapidjson::Value(name, a), rapidjson::Value(p_info.meta_enum_value(name_entry, 0), a), a);
+        } else {
+            rapidjson::Value arr(rapidjson::kArrayType);
+            for (auto val_entry = 0; val_entry < val_count; ++val_entry) {
+                arr.PushBack(rapidjson::Value(p_info.meta_enum_value(name_entry, val_entry), a), a);
+            }
+            meta.AddMember(rapidjson::Value(name, a), arr, a);
+        }
+    }
+    ncm_file_->overwrite_meta(meta.GetObject(), p_abort);
+#endif
 }
 
 inline void fb2k_ncm::input_ncm::remove_tags(abort_callback &p_abort) {
@@ -86,7 +115,7 @@ void input_ncm::open(foobar2000_io::file::ptr p_filehint, const char *p_path, t_
     service_list_t<input_entry> input_services;
     do {
         // there is format hint, so we don't have to find_input twice or more
-        if (ncm_file_->meta_info().IsObject() && ncm_file_->meta_info().HasMember("format")) {
+        if (ncm_file_->meta_info().is_object() && ncm_file_->meta_info().contains("format")) {
             if (ncm_file_->meta_info()["format"] == "flac") {
                 input_entry::g_find_inputs_by_content_type(input_services, "audio/flac", true);
                 break;
@@ -94,7 +123,7 @@ void input_ncm::open(foobar2000_io::file::ptr p_filehint, const char *p_path, t_
                 input_entry::g_find_inputs_by_content_type(input_services, "audio/mpeg", true);
                 break;
             } else {
-                ERROR_LOG("Unknown ncm format hint: ", ncm_file_->meta_info()["format"].GetString());
+                ERROR_LOG("Unknown ncm format hint: ", ncm_file_->meta_info()["format"].get_ref<const nlohmann::json::string_t &>());
                 throw exception_io_unsupported_format();
             }
         }
@@ -149,7 +178,7 @@ void input_ncm::open(foobar2000_io::file::ptr p_filehint, const char *p_path, t_
         throw exception_service_not_found();
     }
 
-    if (p_reason == t_input_open_reason::input_open_info_read) {
+    if (p_reason == t_input_open_reason::input_open_info_read || p_reason == t_input_open_reason::input_open_info_write) {
         input_ptr->open_for_info_read(source_info_reader_, ncm_file_, /*p_path*/ "", p_abort);
     }
     if (p_reason == t_input_open_reason::input_open_info_write) {
@@ -183,13 +212,18 @@ t_filestats2 fb2k_ncm::input_ncm::get_stats2(uint32_t f, abort_callback &a) {
 }
 
 void input_ncm::get_info(file_info &p_info, abort_callback &p_abort) {
-    if (ncm_file_.is_empty() || ncm_file_->meta_info().IsNull()) {
+    DEBUG_LOG("input_ncm::get_info()");
+    if (ncm_file_.is_empty() || ncm_file_->meta_info().is_null()) {
         return;
     }
 
     if (source_info_reader_.is_valid()) {
         source_info_reader_->get_info(/*sub song*/ 0, p_info, p_abort);
     }
+
+#if 0 // TODO: refactor
+
+
 
     // p_info.set_length(meta()["duration"].GetInt() / 1000.0);
     // p_info.info_set_bitrate(meta()["bitrate"].GetUint64() / 1000);
@@ -202,7 +236,9 @@ void input_ncm::get_info(file_info &p_info, abort_callback &p_abort) {
             }
         }
         for (auto &v : ncm_file_->meta_info()["artist"].GetArray()) {
-            artists.insert(v[0].GetString());
+            if (v[0].IsString()) {
+                artists.insert(std::string(v[0].GetString()));
+            }
         }
         p_info.meta_remove_field("Artist");
         for (auto &v : artists) {
@@ -246,6 +282,7 @@ void input_ncm::get_info(file_info &p_info, abort_callback &p_abort) {
             p_info.meta_add("Translated Title", v.GetString());
         }
     }
+#endif
 }
 
 static input_singletrack_factory_t<input_ncm> g_input_ncm_factory;
