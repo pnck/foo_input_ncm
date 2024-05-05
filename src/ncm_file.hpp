@@ -11,7 +11,7 @@
 
 namespace fb2k_ncm
 {
-    using json = nlohmann::json;
+    using json_t = nlohmann::json;
 
     /// @note
     /// - FB2K_MAKE_SERVICE_INTERFACE() is used for creating service interfaces,

@@ -32,14 +32,15 @@ namespace fb2k_ncm
         void remove_tags(abort_callback &p_abort);
 
     private:
-        service_ptr_t<ncm_file> ncm_file_;
-        service_ptr_t<input_decoder> decoder_;
+        input_entry_v2::ptr input_;
+        ncm_file::ptr ncm_file_;
+        input_decoder::ptr decoder_;
         /**
         @note
         * These members are used for extracting original info from wrapped audio content.
         * By reading from the `ncm_file` delegation, the decoder will treat them as a normal file and append the info.
         */
-        service_ptr_t<input_info_reader> source_info_reader_;
+        // service_ptr_t<input_info_reader> source_info_reader_;
         service_ptr_t<input_info_writer> source_info_writer_;
     };
 } // namespace fb2k_ncm

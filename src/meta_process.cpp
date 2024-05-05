@@ -16,7 +16,7 @@ using json_t = nlohmann::json;
 void meta_processor::update(const file_info &info) { // FB2K
     using refl_f_t = void(t_size /*enum index*/);
     auto reflection = std::unordered_map<std::string_view, std::function<refl_f_t>>{}; // UPPERCASE keys
-    reflection["Artist"_upper] = [&](t_size meta_entry) {
+    reflection["artist"_upper] = [&](t_size meta_entry) {
         auto vc = info.meta_enum_value_count(meta_entry);
         if (!vc) {
             return;
@@ -37,6 +37,7 @@ void meta_processor::update(const file_info &info) { // FB2K
         }                                                         \
     }
 
+    // fb2k
     reflection["Title"_upper] = reflect_single(title);
     reflection["Album"_upper] = reflect_single(album);
     reflection["Date"_upper] = reflect_single(date);
@@ -51,6 +52,16 @@ void meta_processor::update(const file_info &info) { // FB2K
     reflection["TotalDiscs"_upper] = reflect_single(total_discs);
     reflection["Comment"_upper] = reflect_single(comment);
     reflection["Lyrics"_upper] = reflect_single(lyrics);
+
+    // ncm
+    reflection["alias"_upper] = reflect_multi(alias);
+    reflection["transNames"_upper] = reflect_multi(transNames);
+
+    // ignore essential special keys
+    reflection[foo_input_ncm_comment_key] = [](auto...) {};
+    reflection[upper(foo_input_ncm_comment_key)] = [](auto...) {};
+    reflection[overwrite_key] = [](auto...) {};
+    reflection[upper(overwrite_key)] = [](auto...) {};
 
     auto meta_count = info.meta_get_count();
     for (auto i = 0; i < meta_count; ++i) {
@@ -75,12 +86,11 @@ void meta_processor::update(const file_info &info) { // FB2K
 void meta_processor::update(const nlohmann::json &json) { // NCM, public
     update_by_json(json);
     if (json.contains("overwrite")) {
-        update_by_json(json["overwrite"]);
+        update_by_json(json["overwrite"], true);
     }
 }
 
-void meta_processor::update_by_json(const nlohmann::json &json) { // NCM
-    // TODO: adapt to dump() format
+void meta_processor::update_by_json(const nlohmann::json &json, bool overwriting) { // NCM
 
     if (!json.is_object()) {
         return;
@@ -106,11 +116,15 @@ void meta_processor::update_by_json(const nlohmann::json &json) { // NCM
         }
     };
 
-#define reflect_single(field, TYPE) [&](const json_t j) { update_v(field, j.get<TYPE>()); };
+#define reflect_single(field, TYPE) [&](const json_t &j) { update_v(field, j.get<TYPE>()); };
 #define reflect_multi_string(field)                                    \
-    [&](const json_t j) {                                              \
+    [&](const json_t &j) {                                             \
         if (!j.is_array()) {                                           \
             return;                                                    \
+        }                                                              \
+        if (overwriting && field.has_value()) {                        \
+            field.reset();                                             \
+            field.emplace();                                           \
         }                                                              \
         for (const auto &val : j.get_ref<const json_t::array_t &>()) { \
             if (!val.is_string()) {                                    \
@@ -152,7 +166,9 @@ void meta_processor::update_by_json(const nlohmann::json &json) { // NCM
     reflection["Lyrics"_upper] = reflect_single(lyrics, std::string);
 
     // ignore comment key
-    reflection[foo_input_ncm_comment_key] = [&](const json_t &) { /* DO NOTHING*/ };
+    reflection[foo_input_ncm_comment_key] = [](auto...) { /* DO NOTHING*/ };
+    // ignore overwrite currently
+    reflection[overwrite_key] = [](auto...) {};
 
     for (const auto &[key, val] : json.items()) {
         if (reflection.contains(key)) {
@@ -179,7 +195,14 @@ void meta_processor::update_by_json(const nlohmann::json &json) { // NCM
 }
 
 void meta_processor::apply(file_info &info) { // FB2K
-    // TODO: use and_then() if c++23 is available
+    // NOTE: use and_then() if c++23 is available
+
+    if (artist.has_value()) {
+        for (const auto &[name, id] : *artist) {
+            info.meta_add("Artist"_upper, name.c_str());
+        }
+    }
+
 #define apply_meta_single(name, field)       \
     if (field.has_value()) {                 \
         info.meta_set(name, field->c_str()); \
@@ -193,12 +216,6 @@ void meta_processor::apply(file_info &info) { // FB2K
         }                                     \
     }
 
-    if (artist.has_value()) {
-        for (const auto &[name, id] : *artist) {
-            info.meta_add("Artist"_upper, name.c_str());
-        }
-    }
-
     // NOTE: fb2k uses UPPERCASE tags for metainfo
     apply_meta_single("title"_upper, title);
     apply_meta_single("album"_upper, album);
@@ -207,7 +224,7 @@ void meta_processor::apply(file_info &info) { // FB2K
     apply_meta_multi("producer"_upper, producer);
     apply_meta_multi("composer"_upper, composer);
     apply_meta_multi("performer"_upper, performer);
-    apply_meta_multi("album artist"_upper, album_artist);
+    apply_meta_multi("Album Artist"_upper, album_artist);
     apply_meta_single("TrackNumber"_upper, track_number);
     apply_meta_single("TotalTracks"_upper, total_tracks);
     apply_meta_single("DiscNumber"_upper, disc_number);
@@ -233,26 +250,26 @@ void meta_processor::apply(file_info &info) { // FB2K
         }
     }
 
-#define apply_info_num(name, field)                          \
-    if (field.has_value()) {                                 \
-        info.info_set(name, std::to_string(*field).c_str()); \
+#define apply_info_num(field)                                  \
+    if (field.has_value()) {                                   \
+        info.info_set(#field, std::to_string(*field).c_str()); \
     }
 
-#define apply_info_s(name, field)            \
-    if (field.has_value()) {                 \
-        info.info_set(name, field->c_str()); \
+#define apply_info_s(field)                    \
+    if (field.has_value()) {                   \
+        info.info_set(#field, field->c_str()); \
     }
 
     // info fields are immutable
-    apply_info_num("musicId", musicId);
-    apply_info_num("albumId", albumId);
-    apply_info_num("mvId", mvId);
+    apply_info_num(musicId);
+    apply_info_num(albumId);
+    apply_info_num(mvId);
     // apply_info_num("bitrate", bitrate);
-    apply_info_num("duration", duration);
-    apply_info_s("albumPicDocId", albumPicDocId);
-    apply_info_s("albumPic", albumPic);
-    apply_info_s("mp3DocId", mp3DocId);
-    apply_info_s("format", format);
+    // apply_info_num("duration", duration);
+    apply_info_s(albumPicDocId);
+    apply_info_s(albumPic);
+    apply_info_s(mp3DocId);
+    apply_info_s(format);
 
 #undef apply_info_num
 #undef apply_info_s
@@ -260,5 +277,76 @@ void meta_processor::apply(file_info &info) { // FB2K
 
 /// @attention adapt to NCM json format
 json_t meta_processor::dump() { // NCM
-    return {};                  // TODO: dump
+    json_t json;
+    if (artist.has_value()) {
+        json["artist"] = json_t::array();
+        for (const auto &[name, id] : *artist) {
+            json["artist"].emplace_back(json_t::array({name, id}));
+        }
+    }
+#define dump_single2(name, field) \
+    if (field.has_value()) {      \
+        json[name] = *field;      \
+    }
+#define dump_single(field) dump_single2(#field, field)
+#define dump_single_u(field) dump_single2(#field##_upper, field)
+
+#define dump_multi2(name, field)          \
+    if (field.has_value()) {              \
+        json[name] = json_t::array();     \
+        for (const auto &val : *field) {  \
+            json[name].emplace_back(val); \
+        }                                 \
+    }
+#define dump_multi(field) dump_multi2(#field, field)
+#define dump_multi_u(field) dump_multi2(#field##_upper, field)
+
+    // fb2k
+    dump_single_u(title);
+    // dump_single_u(album);
+    dump_single_u(date);
+    dump_multi_u(genre);
+    dump_multi_u(producer);
+    dump_multi_u(composer);
+    dump_multi_u(performer);
+    dump_multi2("Album Artist"_upper, album_artist);
+    dump_single2("TrackNumber"_upper, track_number);
+    dump_single2("TotalTracks"_upper, total_tracks);
+    dump_single2("DiscNumber"_upper, disc_number);
+    dump_single2("TotalDiscs"_upper, total_discs);
+    dump_single(comment);
+    dump_single(lyrics);
+
+    // ncm
+    dump_single2("musicName", title);
+    dump_single(album);
+    dump_single(musicId);
+    dump_single(albumId);
+    dump_single(albumPicDocId);
+    dump_single(albumPic);
+    dump_single(mp3DocId);
+    dump_single(mvId);
+    // dump_single(bitrate);
+    // dump_single(duration);
+    dump_single(format);
+    dump_multi(alias);
+    dump_multi(transNames);
+
+    // extra
+    for (const auto &[name, val] : extra_single_values) {
+        json[name] = val;
+    }
+
+    for (const auto &[name, vals] : extra_multi_values) {
+        json[name] = json_t::array();
+        for (const auto &val : vals) {
+            json[name].emplace_back(val);
+        }
+    }
+    return json;
+
+#undef dump_single
+#undef dump_single2
+#undef dump_multi
+#undef dump_multi2
 }

@@ -40,12 +40,16 @@ namespace
         }
         return result;
     }
-
-    constexpr decay_string upper(const std::string &s) {
-        decay_string result;
-        std::transform(
-            s.begin(), s.end(), std::back_inserter(result), [](char c) -> char { return (c >= 'a' && c <= 'z') ? c - ('a' - 'A') : c; });
-        return result;
+    /*
+        constexpr decay_string upper(const std::string &s) {
+            decay_string result;
+            std::transform(
+                s.begin(), s.end(), std::back_inserter(result), [](char c) -> char { return (c >= 'a' && c <= 'z') ? c - ('a' - 'A') : c;
+       }); return result;
+        }
+    */
+    constexpr auto upper(std::string_view v) {
+        return operator""_upper(v.data(), v.size());
     }
 
 } // namespace

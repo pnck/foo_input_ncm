@@ -87,17 +87,20 @@ t_filesize fb2k_ncm::ncm_file::get_size(abort_callback &p_abort) {
 }
 
 t_filesize fb2k_ncm::ncm_file::get_position(abort_callback &p_abort) {
+    auto source_pos = source_->get_position(p_abort);
+    // DEBUG_LOG_F("ncm_file::pos = {} ({})", source_pos - parsed_file_.audio_content_offset, source_pos);
     ensure_audio_offset();
-    return source_->get_position(p_abort) - parsed_file_.audio_content_offset;
+    return source_pos - parsed_file_.audio_content_offset;
 }
 
 void fb2k_ncm::ncm_file::resize(t_filesize p_size, abort_callback &p_abort) {
-    DEBUG_LOG_F("RESIZE ncm_file::resize({})", p_size);
+    // DEBUG_LOG_F("RESIZE ncm_file::resize({})", p_size);
     ensure_audio_offset();
     return source_->resize(parsed_file_.audio_content_offset + p_size, p_abort);
 }
 
 void fb2k_ncm::ncm_file::seek(t_filesize p_position, abort_callback &p_abort) {
+    // DEBUG_LOG_F("SEEK ncm_file::seek({}) real={}", p_position, parsed_file_.audio_content_offset + p_position);
     ensure_audio_offset();
     return source_->seek(parsed_file_.audio_content_offset + p_position, p_abort);
 }
@@ -112,8 +115,7 @@ bool fb2k_ncm::ncm_file::get_content_type(pfc::string_base &p_out) {
 }
 
 void fb2k_ncm::ncm_file::reopen(abort_callback &p_abort) {
-    source_->reopen(p_abort);
-    parse(parse_targets::NCM_PARSE_META | parse_targets::NCM_PARSE_ALBUM | parse_targets::NCM_PARSE_AUDIO);
+    DEBUG_LOG("Reopen: ", this->path());
     ensure_audio_offset();
     source_->seek(parsed_file_.audio_content_offset, p_abort);
 }
@@ -127,16 +129,18 @@ t_filetimestamp fb2k_ncm::ncm_file::get_timestamp(abort_callback &p_abort) {
 }
 
 auto ncm_file::make_seek_guard(abort_callback &p_abort) {
-    return std::unique_ptr<void, std::function<void(void *)>>(
-        nullptr,
-        [this, &p_abort, p = source_->get_position(p_abort), off = parsed_file_.audio_content_offset, &parsed = parsed_file_](void *) {
+    auto defer =
+        [this, &p_abort, p = source_->get_position(p_abort), off = parsed_file_.audio_content_offset, &parsed = parsed_file_](...) {
             // RAII guard, will seek back when function returns
             if (p > off) { // lands in audio
                 source_->seek(parsed.audio_content_offset + (p - off), p_abort);
             } else {
                 source_->seek(p, p_abort);
             }
-        });
+        };
+    // NOTE: std::unique_ptr doesn't work because of its special treatment of nullptr.
+    // defer function will not be called if a nullptr is being "deleted"
+    return std::shared_ptr<void>(nullptr, defer);
 }
 
 void ncm_file::parse(uint16_t to_parse /* = 0xff*/) {
@@ -146,7 +150,7 @@ void ncm_file::parse(uint16_t to_parse /* = 0xff*/) {
     // But we don't need an actual state table, because the parsing process is linear.
     // We just do `goto`s to jump to the next state.
 
-    DEBUG_LOG("Parse (C=", to_parse, ") ", this_path_);
+    DEBUG_LOG_F("Parse (C={}) {}", to_parse, this->path());
 
     auto &p_abort = fb2k::noAbort;
     auto _seek_guard_ = make_seek_guard();
@@ -200,9 +204,9 @@ STATE_END_AUDIORC4:
         goto STATE_END_META;
     } else {
         if (0 == parsed_file_.meta_len) [[unlikely]] {
-            WARN_LOG("No meta data found in ncm file: ", this_path_);
+            WARN_LOG("No meta data found in ncm file: ", this->path());
             meta_str_ = "{}"; // meta_parsed() is determined by the content of meta_str_
-            meta_json_ = json::parse(meta_str_.c_str());
+            meta_json_ = json_t::parse(meta_str_.c_str());
             goto STATE_END_META;
         } else {
             auto meta_b64 = std::make_unique<char[]>(parsed_file_.meta_len + 1);
@@ -229,32 +233,12 @@ STATE_END_AUDIORC4:
             // skip heading `music:`
             meta_str_.assign(reinterpret_cast<const char *>(&meta_raw[6]), reinterpret_cast<const char *>(&meta_raw[total]));
             parsed_file_.meta_content = reinterpret_cast<uint8_t *>(meta_str_.data());
-            meta_json_ = json::parse(meta_str_.c_str());
+            meta_json_ = json_t::parse(meta_str_.c_str());
             if (!meta_json_.is_object()) {
-                WARN_LOG("Failed to parse meta info of ncm file: ", this_path_);
+                WARN_LOG("Failed to parse meta info of ncm file: ", this->path());
             } else {
                 DEBUG_LOG("Parsed NCM Meta: ", meta_json_.dump(2));
-
-#if 0 // TODO: apply overwriting
-                if (!meta_json_.HasMember(overwrite_key.data())) {
-                    goto STATE_END_META;
-                } else {
-                    auto &overwrite = meta_json_[overwrite_key.data()];
-                    if (!overwrite.IsObject()) {
-                        goto STATE_END_META; // invalid overwrite
-                    }
-                    using map = std::unordered_map<std::string, rapidjson::Value>;
-                    map iname_map;
-                    auto upper = [](std::string &&s) {
-                        std::ranges::transform(s, s.begin(), [](auto c) { return std::toupper(c); });
-                        return s;
-                    };
-                    for (auto &m : meta_json_.GetObject()) {
-                        std::string name = m.name.GetString();
-                        iname_map[upper(std::move(name))] = m.value;
-                    }
-                }
-#endif
+                // overwrite takes effect when get_info() => meta_processor::update()
             }
         }
     }
@@ -269,7 +253,7 @@ STATE_END_META:
         goto STATE_END_ALBUMIMG;
     } else {
         if (!parsed_file_.album_image_size[0]) {
-            WARN_LOG("No album image found in ncm file: ", this_path_);
+            WARN_LOG("No album image found in ncm file: ", this->path());
             goto STATE_END_ALBUMIMG;
         }
         parsed_file_.album_image_offset = source_->get_position(p_abort);
@@ -333,7 +317,7 @@ bool ncm_file::save_raw_audio(const char *to_dir, abort_callback &p_abort) {
 
 void ncm_file::overwrite_meta(const nlohmann::json &meta, abort_callback &p_abort) {
     if (!meta_parsed()) {
-        parse(); // parse all => about to move the remaining contents
+        this->parse(); // parse all => about to move the remaining contents
     }
     auto _seek_guard_ = make_seek_guard();
 
@@ -344,16 +328,18 @@ void ncm_file::overwrite_meta(const nlohmann::json &meta, abort_callback &p_abor
     // passed
 
     // embed overwriting meta into the source
-    json live_meta = json::parse(meta_str_); // NOTE:  use unmodified raw json string. `meta_json_` is merged with `overwrite` fields.
+    json_t live_meta = json_t::parse(meta_str_); // NOTE:  use unmodified raw json string.
     if (live_meta.contains(overwrite_key)) {
         live_meta.erase(overwrite_key); // replace the old key
     }
 
-    live_meta[overwrite_key] = meta;
-    live_meta[overwrite_key].emplace(foo_input_ncm_comment_key, foo_input_ncm_comment);
+    if (!meta.is_null()) {
+        live_meta[overwrite_key] = meta;
+        live_meta[overwrite_key].emplace(foo_input_ncm_comment_key, foo_input_ncm_comment);
+    }
     auto meta_str_to_write = std::string("music:") + live_meta.dump();
 
-    DEBUG_LOG_F("Overwriting meta (to {}): {}", path(), meta_str_to_write);
+    DEBUG_LOG_F("Overwriting meta (to {}): {}", this->path(), meta_str_to_write);
 
     // NOTE: meta json processing:
     // 1. read <meta_len>
@@ -422,6 +408,7 @@ void ncm_file::overwrite_meta(const nlohmann::json &meta, abort_callback &p_abor
     source_->seek_ex(0, seek_from_beginning, p_abort);
     source_->set_eof(p_abort);
     file::g_transfer(tmp_file, source_, tmp_file->get_size(p_abort), p_abort);
+    source_->commit(fb2k::noAbort);
 }
 
 void ncm_file::reset_album_image(album_art_data_ptr image, abort_callback &p_abort) {

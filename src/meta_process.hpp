@@ -56,7 +56,6 @@ namespace fb2k_ncm
 
     class meta_processor : public uniform_meta_st {
     public:
-        // TODO: update all fields
         void update(const file_info &info);      // FB2K
         void update(const nlohmann::json &json); // NCM
         void apply(file_info &info);             // FB2K
@@ -65,7 +64,7 @@ namespace fb2k_ncm
         explicit meta_processor(const nlohmann::json &json) { update(json); }
 
     private:
-        void update_by_json(const nlohmann::json &json); // NCM
+        void update_by_json(const nlohmann::json &json, bool overwriting = false); // NCM
 
         static void update_v_single(singleT auto &field, auto &&val) {
             using hold_t = std::remove_cvref_t<decltype(*field)>;

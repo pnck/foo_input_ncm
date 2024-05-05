@@ -36,37 +36,20 @@ inline void fb2k_ncm::input_ncm::retag(const file_info &p_info, abort_callback &
     DEBUG_LOG("input_ncm::retag()");
     // Replay Gain
     file_info_impl cur_file_info;
-    source_info_reader_->get_info(0, cur_file_info, p_abort);
+    decoder_->get_info(0, cur_file_info, p_abort);
     cur_file_info.set_replaygain(p_info.get_replaygain());
     source_info_writer_->set_info(0, cur_file_info, p_abort);
     source_info_writer_->commit(p_abort);
 
-#if 0 // TODO: refactor
-
     // Meta tags
-    rapidjson::Document meta(rapidjson::kObjectType);
-    auto &a = meta.GetAllocator();
-    for (auto name_entry = 0; name_entry < p_info.meta_get_count(); ++name_entry) {
-        auto name = p_info.meta_enum_name(name_entry);
-        auto val_count = p_info.meta_enum_value_count(name_entry);
-        if (val_count == 1) {
-            meta.AddMember(rapidjson::Value(name, a), rapidjson::Value(p_info.meta_enum_value(name_entry, 0), a), a);
-        } else {
-            rapidjson::Value arr(rapidjson::kArrayType);
-            for (auto val_entry = 0; val_entry < val_count; ++val_entry) {
-                arr.PushBack(rapidjson::Value(p_info.meta_enum_value(name_entry, val_entry), a), a);
-            }
-            meta.AddMember(rapidjson::Value(name, a), arr, a);
-        }
-    }
-    ncm_file_->overwrite_meta(meta.GetObject(), p_abort);
-#endif
+    auto meta = meta_processor(p_info);
+    ncm_file_->overwrite_meta(meta.dump(), p_abort);
 }
 
 inline void fb2k_ncm::input_ncm::remove_tags(abort_callback &p_abort) {
     DEBUG_LOG("input_ncm::remove_tags()");
-    // TODO: clear overwrites
     source_info_writer_->remove_tags_fallback(p_abort);
+    ncm_file_->overwrite_meta(nlohmann::json(), p_abort);
 }
 
 inline bool fb2k_ncm::input_ncm::decode_can_seek() {
@@ -137,7 +120,7 @@ void input_ncm::open(foobar2000_io::file::ptr p_filehint, const char *p_path, t_
         input_services.add_items(flac_decoders);
     } while (false);
 
-    service_ptr_t<input_entry_v3> input_ptr;
+    service_ptr_t<input_entry_v2> input_ptr;
     // see if found input matches the codec
     for (size_t i = 0; i < input_services.get_count(); ++i) {
         input_services[i]->cast(input_ptr);
@@ -147,6 +130,7 @@ void input_ncm::open(foobar2000_io::file::ptr p_filehint, const char *p_path, t_
                 if (decoder_.is_valid()) {
                     // decoder_->initialize(0, p_flags, p_abort);
                     DEBUG_LOG("Found decoder [", input_ptr->get_name(), "] for ", ncm_file_->path());
+                    input_ = input_ptr;
                     break;
                 }
             }
@@ -162,10 +146,14 @@ void input_ncm::open(foobar2000_io::file::ptr p_filehint, const char *p_path, t_
                 if (input_ptr.is_empty()) {
                     continue;
                 }
+                if (input_ptr->get_guid_() == class_guid) { // self
+                    continue;
+                }
                 input_ptr->open_for_decoding(decoder_, ncm_file_, /*file_path_*/ "", p_abort);
                 if (decoder_.is_valid()) {
                     // decoder_->initialize(0, p_flags, p_abort);
                     DEBUG_LOG("Found decoder [", input_ptr->get_name(), "] for ", ncm_file_->path());
+                    input_ = input_ptr;
                     break;
                 }
 
@@ -180,12 +168,14 @@ void input_ncm::open(foobar2000_io::file::ptr p_filehint, const char *p_path, t_
         throw exception_service_not_found();
     }
 
+#if 0 // maybe misused
     if (p_reason == t_input_open_reason::input_open_info_read || p_reason == t_input_open_reason::input_open_info_write) {
         input_ptr->open_for_info_read(source_info_reader_, ncm_file_, /*p_path*/ "", p_abort);
     }
+#endif
     if (p_reason == t_input_open_reason::input_open_info_write) {
         DEBUG_LOG("Attempt to write to ncm file.");
-        input_ptr->open_for_info_write(source_info_writer_, ncm_file_, /*p_path*/ "", p_abort);
+        input_->open_for_info_write(source_info_writer_, ncm_file_, /*p_path*/ "", p_abort);
     }
 }
 
@@ -215,13 +205,21 @@ t_filestats2 fb2k_ncm::input_ncm::get_stats2(uint32_t f, abort_callback &a) {
 
 void input_ncm::get_info(file_info &p_info, abort_callback &p_abort) {
     DEBUG_LOG("input_ncm::get_info()");
-    if (ncm_file_.is_empty() || ncm_file_->meta_info().is_null()) {
+    if (ncm_file_.is_empty()) {
         return;
     }
 
-    if (source_info_reader_.is_valid()) {
-        source_info_reader_->get_info(/*sub song*/ 0, p_info, p_abort);
+    // refresh meta info after retagging
+    ncm_file_->parse(ncm_file::parse_targets::NCM_PARSE_META);
+
+    input_info_reader::ptr reader;
+    if (source_info_writer_.is_valid()) { // if just retagged, use the recent file_info
+        reader = source_info_writer_;
+    } else if (decoder_.is_valid()) {
+        reader = decoder_;
     }
+
+    reader->get_info(/*sub song*/ 0, p_info, p_abort);
 
     auto mp = meta_processor(p_info);
     mp.update(ncm_file_->meta_info());
