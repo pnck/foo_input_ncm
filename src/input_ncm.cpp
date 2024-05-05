@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "input_ncm.hpp"
 #include "common/log.hpp"
+#include "meta_process.hpp"
 
 #include <string>
 #include <sstream>
@@ -221,68 +222,9 @@ void input_ncm::get_info(file_info &p_info, abort_callback &p_abort) {
         source_info_reader_->get_info(/*sub song*/ 0, p_info, p_abort);
     }
 
-#if 0 // TODO: refactor
-
-
-
-    // p_info.set_length(meta()["duration"].GetInt() / 1000.0);
-    // p_info.info_set_bitrate(meta()["bitrate"].GetUint64() / 1000);
-    if (ncm_file_->meta_info().HasMember("artist")) {
-        std::unordered_set<std::string> artists; // remove redundant (from tags within audio content)
-        if (auto count = p_info.meta_get_count_by_name("Artist"); count > 0) {
-            auto index = p_info.meta_find("Artist");
-            for (size_t i = 0; i < count; ++i) {
-                artists.insert(p_info.meta_enum_value(index, i));
-            }
-        }
-        for (auto &v : ncm_file_->meta_info()["artist"].GetArray()) {
-            if (v[0].IsString()) {
-                artists.insert(std::string(v[0].GetString()));
-            }
-        }
-        p_info.meta_remove_field("Artist");
-        for (auto &v : artists) {
-            p_info.meta_add("Artist", v.c_str());
-        }
-    }
-    if (ncm_file_->meta_info().HasMember("date")) {
-        p_info.meta_set("Date", ncm_file_->meta_info()["date"].GetString());
-    }
-    if (ncm_file_->meta_info().HasMember("album")) {
-        p_info.meta_set("Album", ncm_file_->meta_info()["album"].GetString());
-    }
-    if (ncm_file_->meta_info().HasMember("musicName")) {
-        p_info.meta_set("Title", ncm_file_->meta_info()["musicName"].GetString());
-    }
-    if (ncm_file_->meta_info().HasMember("musicId")) {
-        p_info.info_set("Music ID", PFC_string_formatter() << ncm_file_->meta_info()["musicId"].GetUint64());
-    }
-    if (ncm_file_->meta_info().HasMember("albumId")) {
-        p_info.info_set("Album ID", PFC_string_formatter() << ncm_file_->meta_info()["albumId"].GetUint64());
-    }
-    if (ncm_file_->meta_info().HasMember("albumPic")) {
-        p_info.info_set("Album Artwork", ncm_file_->meta_info()["albumPic"].GetString());
-    }
-    if (ncm_file_->meta_info().HasMember("alias")) {
-        std::stringstream comment;
-        bool first = true;
-        for (auto &v : ncm_file_->meta_info()["alias"].GetArray()) {
-            p_info.meta_add("Alias", v.GetString());
-            if (!first) {
-                comment << " | ";
-            }
-            comment << v.GetString();
-            first = false;
-        }
-        p_info.meta_remove_field("Comment");
-        p_info.meta_set("Comment", comment.str().c_str());
-    }
-    if (ncm_file_->meta_info().HasMember("transNames")) {
-        for (auto &v : ncm_file_->meta_info()["transNames"].GetArray()) {
-            p_info.meta_add("Translated Title", v.GetString());
-        }
-    }
-#endif
+    auto mp = meta_processor(p_info);
+    mp.update(ncm_file_->meta_info());
+    mp.apply(p_info);
 }
 
 static input_singletrack_factory_t<input_ncm> g_input_ncm_factory;

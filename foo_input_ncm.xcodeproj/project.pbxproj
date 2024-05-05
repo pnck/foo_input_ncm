@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		A35F92E52BD82FC400ABAABA /* foo_input_ncm.component in CopyFiles */ = {isa = PBXBuildFile; fileRef = A3B7380C2BCCBC6700DF7424 /* foo_input_ncm.component */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		A35F93C42BDBF18200ABAABA /* context_menu.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A35F93C02BDBF18200ABAABA /* context_menu.cpp */; };
+		A35F94E32BE6C2F000ABAABA /* meta_process.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A35F94E22BE6C2F000ABAABA /* meta_process.cpp */; };
 		A3B738312BCCCF1A00DF7424 /* libpfc-Mac.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A3B738302BCCCF1A00DF7424 /* libpfc-Mac.a */; };
 		A3B738742BCE313B00DF7424 /* libfoobar2000_component_client.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A3B738732BCE313B00DF7424 /* libfoobar2000_component_client.a */; };
 		A3B738762BCE313B00DF7424 /* libfoobar2000_SDK.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A3B738752BCE313B00DF7424 /* libfoobar2000_SDK.a */; };
@@ -44,7 +45,8 @@
 		A35F93C62BDDF04600ABAABA /* log.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = log.hpp; sourceTree = "<group>"; };
 		A35F93C72BDDF04600ABAABA /* consts.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = consts.hpp; sourceTree = "<group>"; };
 		A35F94912BE17E3100ABAABA /* foo_input_ncm_tests.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = foo_input_ncm_tests.xcodeproj; path = test/unit/macos/foo_input_ncm_tests.xcodeproj; sourceTree = "<group>"; };
-		A35F94D92BE457FF00ABAABA /* meta_processor.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = meta_processor.hpp; sourceTree = "<group>"; };
+		A35F94D92BE457FF00ABAABA /* meta_process.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = meta_process.hpp; sourceTree = "<group>"; };
+		A35F94E22BE6C2F000ABAABA /* meta_process.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = meta_process.cpp; sourceTree = "<group>"; };
 		A3B7380C2BCCBC6700DF7424 /* foo_input_ncm.component */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = foo_input_ncm.component; sourceTree = BUILT_PRODUCTS_DIR; };
 		A3B738302BCCCF1A00DF7424 /* libpfc-Mac.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; path = "libpfc-Mac.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		A3B738732BCE313B00DF7424 /* libfoobar2000_component_client.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; path = libfoobar2000_component_client.a; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -171,7 +173,6 @@
 		A3B738822BCE497400DF7424 /* common */ = {
 			isa = PBXGroup;
 			children = (
-				A35F94D92BE457FF00ABAABA /* meta_processor.hpp */,
 				A35F93C72BDDF04600ABAABA /* consts.hpp */,
 				A35F93C62BDDF04600ABAABA /* log.hpp */,
 				A3B738802BCE497400DF7424 /* helpers.hpp */,
@@ -186,6 +187,8 @@
 				A35F93C32BDBF18200ABAABA /* ui */,
 				A3B7387E2BCE497400DF7424 /* cipher */,
 				A3B738822BCE497400DF7424 /* common */,
+				A35F94D92BE457FF00ABAABA /* meta_process.hpp */,
+				A35F94E22BE6C2F000ABAABA /* meta_process.cpp */,
 				A3B7388C2BCE497400DF7424 /* album_art_extractor.cpp */,
 				A3B7388D2BCE497400DF7424 /* album_art_extractor.hpp */,
 				A3B7388F2BCE497400DF7424 /* input_ncm.cpp */,
@@ -280,6 +283,7 @@
 				A3B738972BCE497400DF7424 /* abnormal_RC4.cpp in Sources */,
 				A3B7389F2BCE497400DF7424 /* album_art_extractor.cpp in Sources */,
 				A3B738A22BCE497400DF7424 /* main.cpp in Sources */,
+				A35F94E32BE6C2F000ABAABA /* meta_process.cpp in Sources */,
 				A35F93C42BDBF18200ABAABA /* context_menu.cpp in Sources */,
 				A3B738A42BCE497400DF7424 /* stdafx.cpp in Sources */,
 				A3B738A12BCE497400DF7424 /* input_ncm.cpp in Sources */,

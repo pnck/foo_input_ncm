@@ -57,11 +57,13 @@ namespace fb2k_ncm
 
     namespace
     {
+        // name: value
         template <typename T = std::string>
-        using single_v_map = std::unordered_map<std::string, std::string>;
+        using single_v_map = std::unordered_map<std::string, T>;
 
+        // name: [value1, value2, ...]
         template <typename T = std::string>
-        using multi_v_map = std::unordered_map<std::string, std::vector<std::string>>;
+        using multi_v_map = std::unordered_map<std::string, std::unordered_set<T>>;
 
         template <typename T = std::string>
         using single = T;
@@ -83,6 +85,7 @@ namespace fb2k_ncm
         optional<single<>> album;
         optional<single<>> date; // aka year
         optional<multi<>> genre;
+        optional<multi<>> producer;
         optional<multi<>> composer;
         optional<multi<>> performer;
         optional<multi<>> album_artist;
@@ -91,6 +94,24 @@ namespace fb2k_ncm
         optional<single<>> disc_number;
         optional<single<>> total_discs;
         optional<single<>> comment;
+        optional<single<>> lyrics;
+
+        /** FB2K standard fields
+         * Artist Name=ARTIST;
+         * Track Title=TITLE;
+         * Album Title=ALBUM;
+         * Date=DATE;
+         * Genre=GENRE;
+         * Composer=COMPOSER;
+         * Performer=PERFORMER;
+         * Album Artist=ALBUM ARTIST;
+         * Track Number=TRACKNUMBER;
+         * Total Tracks=TOTALTRACKS;
+         * Disc Number=DISCNUMBER;
+         * Total Discs=TOTALDISCS;
+         * Comment=COMMENT;
+         */
+
         // ncm
         optional<single<uint64_t>> musicId;
         optional<single<uint64_t>> albumId;
@@ -104,6 +125,7 @@ namespace fb2k_ncm
         optional<multi<>> alias;
         optional<multi<>> transNames; // translated titles
 
+        // reserved, if dynamic names are better
         single_v_map<> extra_single_values;
         multi_v_map<> extra_multi_values;
     };

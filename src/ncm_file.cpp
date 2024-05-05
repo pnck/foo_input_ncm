@@ -2,7 +2,7 @@
 #include "ncm_file.hpp"
 
 #include "common/platform.hpp"
-#include "common/meta_processor.hpp"
+#include "meta_process.hpp"
 #include "common/log.hpp"
 
 #include <algorithm>
@@ -185,7 +185,7 @@ void ncm_file::parse(uint16_t to_parse /* = 0xff*/) {
             .set_input(rc4key_raw.get(), parsed_file_.rc4_seed_len)
             .set_output(rc4key_raw.get(), parsed_file_.rc4_seed_len)
             .decrypt_all();
-        constexpr std::string_view rc4key_magic = "neteasecloudmusic";
+        constexpr auto rc4key_magic = "neteasecloudmusic"sv;
         if (memcmp(rc4key_raw.get(), rc4key_magic.data(), rc4key_magic.size())) [[unlikely]] {
             throw_format_error("wrong rc4 key magic");
         }
@@ -239,7 +239,7 @@ STATE_END_AUDIORC4:
             if (!meta_json_.is_object()) {
                 WARN_LOG("Failed to parse meta info of ncm file: ", this_path_);
             } else {
-                DEBUG_LOG("Parsed NCM Meta: ", meta_str_.c_str());
+                DEBUG_LOG("Parsed NCM Meta: ", meta_json_.dump(2));
 
 #if 0 // TODO: apply overwriting
                 if (!meta_json_.HasMember(overwrite_key.data())) {
@@ -350,8 +350,7 @@ void ncm_file::overwrite_meta(const nlohmann::json &meta, abort_callback &p_abor
     // passed
 
     // embed overwriting meta into the source
-    json live_meta;
-    live_meta = json::parse(meta_str_); // NOTE:  use unmodified raw json string. `meta_json_` is merged with `overwrite` fields.
+    json live_meta = json::parse(meta_str_); // NOTE:  use unmodified raw json string. `meta_json_` is merged with `overwrite` fields.
     if (live_meta.contains(overwrite_key)) {
         live_meta.erase(overwrite_key); // replace the old key
     }
