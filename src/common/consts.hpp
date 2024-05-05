@@ -5,9 +5,12 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <string>
+#include <string_view>
 #include <vector>
 
 #include "platform.hpp"
+
+using namespace std::string_view_literals;
 
 constexpr inline GUID guid_candidates[] = {
     {0x0ef1cb99, 0x91ad, 0x486c, {0x82, 0x82, 0xda, 0x70, 0x98, 0x4e, 0xa8, 0x51}}, // input_ncm service
@@ -50,6 +53,12 @@ namespace fb2k_ncm
 
     constexpr int max_thread_count = 8; // recommended number of threads (hint)
 
+    constexpr auto meta_b64_hint = "163 key(Don't modify):"sv;
+    constexpr auto overwrite_key = "overwrite"sv;
+    constexpr auto foo_input_ncm_comment_key = "foo_input_ncm_comment"sv;
+    constexpr auto foo_input_ncm_comment = "These fields overwrite the original metainfo, "
+                                           "handled by <foo_input_ncm> component (" PEOJECT_HOST_REPO ")."sv;
+
 } // namespace fb2k_ncm
 
 namespace fb2k_ncm
@@ -81,9 +90,9 @@ namespace fb2k_ncm
         // fb2k
         optional<std::unordered_map<std::string, uint64_t>> artist; // <artist name, artis id>
 
-        optional<single<>> title; // aka musicName
-        optional<single<>> album;
-        optional<single<>> date; // aka year
+        optional<single<>> title; // dup, aka musicName
+        optional<single<>> album; // dup
+        optional<single<>> date;  // aka year
         optional<multi<>> genre;
         optional<multi<>> producer;
         optional<multi<>> composer;

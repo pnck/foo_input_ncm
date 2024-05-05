@@ -10,7 +10,6 @@
 
 namespace fb2k_ncm
 {
-    using json = nlohmann::json;
     namespace
     {
         template <typename T>

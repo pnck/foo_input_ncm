@@ -65,6 +65,7 @@ inline void fb2k_ncm::input_ncm::retag(const file_info &p_info, abort_callback &
 
 inline void fb2k_ncm::input_ncm::remove_tags(abort_callback &p_abort) {
     DEBUG_LOG("input_ncm::remove_tags()");
+    // TODO: clear overwrites
     source_info_writer_->remove_tags_fallback(p_abort);
 }
 

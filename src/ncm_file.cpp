@@ -11,12 +11,6 @@
 #include <unordered_map>
 
 using namespace std::string_view_literals;
-constexpr auto meta_b64_hint = "163 key(Don't modify):"sv;
-constexpr auto overwrite_key = "overwrite"sv;
-constexpr auto foo_input_ncm_comment_key = "__foo_input_ncm_comment__"sv;
-constexpr auto foo_input_ncm_comment = "These fields overwrite the original metainfo, "
-                                       "handled by <foo_input_ncm> component (" PEOJECT_HOST_REPO ")."sv;
-
 using namespace fb2k_ncm;
 
 inline void ncm_file::ensure_audio_offset() {
