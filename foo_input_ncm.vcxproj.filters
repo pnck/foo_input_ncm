@@ -72,6 +72,9 @@
     <ClInclude Include="src\common\log.hpp">
       <Filter>Header Files\common</Filter>
     </ClInclude>
+    <ClInclude Include="src\meta_process.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\album_art_extractor.cpp">
@@ -100,6 +103,9 @@
     </ClCompile>
     <ClCompile Include="src\ui\context_menu.cpp">
       <Filter>Source Files\ui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\meta_process.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

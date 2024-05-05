@@ -81,6 +81,7 @@ jobs:
         run: |
           TAG=$(git describe --tags)
           VERSION=${TAG:1}
+          echo "" >> src/stdafx.h
           echo "#define CURRENT_VERSION $VERSION" >> src/stdafx.h
           echo "----------------------------"
           cat src/stdafx.h

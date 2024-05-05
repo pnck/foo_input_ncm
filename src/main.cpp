@@ -4,6 +4,11 @@
 
   Change Log
 
+  Version 0.5.0
+  - Support of ReplayGain and retagging
+    - Tags in the audio content and the embedded JSON metainfo are left untouched. 
+      Retagging works on top of them by introduce new overwrite fields.
+
   Version 0.4.1
   - Concurrency support for batch conversion
   - Add progress UI for batch conversion

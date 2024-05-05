@@ -116,7 +116,21 @@ void meta_processor::update_by_json(const nlohmann::json &json, bool overwriting
         }
     };
 
-#define reflect_single(field, TYPE) [&](const json_t &j) { update_v(field, j.get<TYPE>()); };
+    // NOTE: I found an abnormal case that albumPicId is a number instead of string.
+    // So I deside to test every possible numeric type and try to convert them.
+
+#define reflect_single(field, TYPE)                                 \
+    [&](const json_t &j) {                                          \
+        try {                                                       \
+            update_v(field, j.get<TYPE>());                         \
+        } catch (const json_t::type_error &) {                      \
+            if constexpr (std::is_same_v<TYPE, std::string>) {      \
+                update_v(field, std::to_string(j.get<uint64_t>())); \
+            } else if constexpr (std::is_same_v<TYPE, uint64_t>) {  \
+                update_v(field, std::stoull(j.get<std::string>())); \
+            }                                                       \
+        }                                                           \
+    }
 #define reflect_multi_string(field)                                    \
     [&](const json_t &j) {                                             \
         if (!j.is_array()) {                                           \

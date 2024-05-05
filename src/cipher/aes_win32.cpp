@@ -108,6 +108,7 @@ size_t AES_context_win32::do_crypt_universal( // -*-
             throw cipher_error("BCryptDecrypt failed", status_);
         }
     } else if (op == OP::ENC) {
+        auto padding_mode = (M == aes_chain_mode::ECB ? 0 : BCRYPT_BLOCK_PADDING);
         if (auto status_ = BCryptEncrypt( // -*-
                 h_key,
                 (PUCHAR)src,
@@ -118,7 +119,7 @@ size_t AES_context_win32::do_crypt_universal( // -*-
                 NULL,
                 0,
                 &required_size,
-                BCRYPT_BLOCK_PADDING);
+                padding_mode);
             !SUCCESS(status_)) {
             throw cipher_error("Cannot get required size", status_);
         }
@@ -135,7 +136,7 @@ size_t AES_context_win32::do_crypt_universal( // -*-
                 (PUCHAR)dst,
                 (ULONG)cb_dst,
                 &required_size,
-                BCRYPT_BLOCK_PADDING);
+                padding_mode);
             !SUCCESS(status_)) {
             throw cipher_error("BCryptEncrypt failed", status_);
         }

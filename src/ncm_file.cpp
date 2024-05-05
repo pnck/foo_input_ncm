@@ -44,6 +44,21 @@ inline void ncm_file::throw_format_error(const std::string &extra) {
     throw_format_error(extra.c_str());
 }
 
+auto ncm_file::make_seek_guard(abort_callback &p_abort) {
+    auto defer =
+        [this, &p_abort, p = source_->get_position(p_abort), off = parsed_file_.audio_content_offset, &parsed = parsed_file_](...) {
+            // RAII guard, will seek back when function returns
+            if (p > off) { // lands in audio
+                source_->seek(parsed.audio_content_offset + (p - off), p_abort);
+            } else {
+                source_->seek(p, p_abort);
+            }
+        };
+    // NOTE: std::unique_ptr doesn't work because of its special treatment of nullptr.
+    // defer function will not be called if a nullptr is being "deleted"
+    return std::shared_ptr<void>(nullptr, defer);
+}
+
 t_size fb2k_ncm::ncm_file::read(void *p_buffer, t_size p_bytes, abort_callback &p_abort) {
     ensure_audio_offset();
     ENSURE_DECRYPTOR();
@@ -64,7 +79,6 @@ t_size fb2k_ncm::ncm_file::read(void *p_buffer, t_size p_bytes, abort_callback &
     return total;
 }
 
-/// @attention This function is not implemented / not in use
 void fb2k_ncm::ncm_file::write(const void *p_buffer, t_size p_bytes, abort_callback &p_abort) {
     ensure_audio_offset();
     auto source_pos = source_->get_position(p_abort);
@@ -126,21 +140,6 @@ bool fb2k_ncm::ncm_file::is_remote() {
 
 t_filetimestamp fb2k_ncm::ncm_file::get_timestamp(abort_callback &p_abort) {
     return source_->get_timestamp(p_abort);
-}
-
-auto ncm_file::make_seek_guard(abort_callback &p_abort) {
-    auto defer =
-        [this, &p_abort, p = source_->get_position(p_abort), off = parsed_file_.audio_content_offset, &parsed = parsed_file_](...) {
-            // RAII guard, will seek back when function returns
-            if (p > off) { // lands in audio
-                source_->seek(parsed.audio_content_offset + (p - off), p_abort);
-            } else {
-                source_->seek(p, p_abort);
-            }
-        };
-    // NOTE: std::unique_ptr doesn't work because of its special treatment of nullptr.
-    // defer function will not be called if a nullptr is being "deleted"
-    return std::shared_ptr<void>(nullptr, defer);
 }
 
 void ncm_file::parse(uint16_t to_parse /* = 0xff*/) {
@@ -237,7 +236,7 @@ STATE_END_AUDIORC4:
             if (!meta_json_.is_object()) {
                 WARN_LOG("Failed to parse meta info of ncm file: ", this->path());
             } else {
-                DEBUG_LOG("Parsed NCM Meta: ", meta_json_.dump(2));
+                // DEBUG_LOG("Parsed NCM Meta: ", meta_json_.dump(2));
                 // overwrite takes effect when get_info() => meta_processor::update()
             }
         }
@@ -287,7 +286,7 @@ bool ncm_file::save_raw_audio(const char *to_dir, abort_callback &p_abort) {
     output.add_filename(pfc::string_filename(this->path()));
     output += ext();
 
-    auto _seek_guard_ = make_seek_guard(p_abort);
+    auto _seek_guard_ = make_seek_guard(fb2k::noAbort);
 
     // NOTE:
     // If g_open_write_new() opens a file that is being played, the playback will be broken, and the file content will be truncated.
@@ -299,8 +298,8 @@ bool ncm_file::save_raw_audio(const char *to_dir, abort_callback &p_abort) {
     try {
         file_ptr file_raw;
         filesystem::g_open_write_new(file_raw, output, p_abort);
-
-        if (auto size = file_v2::g_transfer(this, file_raw.get_ptr(), get_size(p_abort), p_abort); size == get_size(p_abort)) {
+        this->seek(0, p_abort);
+        if (auto size = file_v2::g_transfer(this, file_raw.get_ptr(), this->get_size(p_abort), p_abort); size == this->get_size(p_abort)) {
             DEBUG_LOG("Extraction done: ", output);
             path_raw_saved_to_ = output;
             return true;
@@ -351,7 +350,7 @@ void ncm_file::overwrite_meta(const nlohmann::json &meta, abort_callback &p_abor
 
     size_t meta_aligned_size = cipher::aligned(meta_str_to_write.size());
     auto _step1_handle_padding = [&] {
-        uint8_t padding = meta_aligned_size - meta_str_to_write.size();
+        uint8_t padding = static_cast<uint8_t>(meta_aligned_size - meta_str_to_write.size());
         meta_str_to_write.reserve(meta_aligned_size);
         for (auto i = meta_str_to_write.size(); i < meta_aligned_size; ++i) {
             meta_str_to_write.push_back(padding);

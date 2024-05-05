@@ -26,7 +26,7 @@ namespace
     struct decay_string : public std::string {
         using base_t = std::string;
         constexpr decay_string() : base_t() {}
-        decay_string(base_t &&str) noexcept : base_t(std::move(str)) {}
+        constexpr decay_string(base_t &&str) noexcept : base_t(std::move(str)) {}
         operator const char *() const noexcept { return this->data(); }
         operator std::string_view() const noexcept { return {this->data(), this->size()}; }
     };

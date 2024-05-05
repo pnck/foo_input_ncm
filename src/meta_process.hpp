@@ -32,8 +32,7 @@ namespace fb2k_ncm
 
         template <optionalT T>
         consteval static bool opt_is_multi() {
-            using CT = std::remove_cvref_t<decltype(*std::declval<T>())>;
-            if constexpr (requires { CT{}.~unordered_set(); }) {
+            if constexpr (requires(T t) { t->~unordered_set(); }) {
                 return true;
             } else {
                 return false;
@@ -47,9 +46,11 @@ namespace fb2k_ncm
         concept multiT = opt_is_multi<T>();
 
         consteval void traits_tests() {
-            static_assert(singleT<decltype(uniform_meta_st{}.album)>, "check your template implementation");
-            static_assert(multiT<decltype(uniform_meta_st{}.genre)>, "check your template implementation");
+            using ST = decltype(uniform_meta_st{}.album);
+            using MT = decltype(uniform_meta_st{}.genre);
             using artistT = decltype(uniform_meta_st{}.artist);
+            static_assert(singleT<ST>, "check your template implementation");
+            static_assert(multiT<MT>, "check your template implementation");
             static_assert(!singleT<artistT> && !multiT<artistT>, "check your template implementation");
         }
     } // namespace

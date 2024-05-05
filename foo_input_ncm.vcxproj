@@ -199,6 +199,7 @@ copy $(TargetPath)  $(ProjectDir)dist\$(Platform)\</Command>
     <ClInclude Include="src\common\helpers.hpp" />
     <ClInclude Include="src\common\log.hpp" />
     <ClInclude Include="src\common\platform.hpp" />
+    <ClInclude Include="src\meta_process.hpp" />
     <ClInclude Include="src\ui\context_menu.hpp" />
     <ClInclude Include="src\input_ncm.hpp" />
     <ClInclude Include="src\ncm_file.hpp" />
@@ -209,6 +210,7 @@ copy $(TargetPath)  $(ProjectDir)dist\$(Platform)\</Command>
     <ClCompile Include="src\cipher\abnormal_RC4.cpp" />
     <ClCompile Include="src\cipher\aes_common.cpp" />
     <ClCompile Include="src\cipher\aes_win32.cpp" />
+    <ClCompile Include="src\meta_process.cpp" />
     <ClCompile Include="src\ui\context_menu.cpp" />
     <ClCompile Include="src\input_ncm.cpp" />
     <ClCompile Include="src\main.cpp" />
