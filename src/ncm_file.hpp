@@ -87,9 +87,6 @@ namespace fb2k_ncm
         const char *this_path_ = nullptr;
         ncm_file_parsed_st parsed_file_{};
         file_ptr source_;
-        // std::unique_ptr<std::basic_fstream<char>> source_;
-        // using fschar = decltype(source_)::element_type::char_type;
-
         std::string meta_str_;
         nlohmann::json meta_json_;
         cipher::abnormal_RC4 rc4_decryptor_;

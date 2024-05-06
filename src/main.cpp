@@ -48,7 +48,7 @@
 #define NCM_LOADER_VERSION FALLBACK_VERSION
 #endif
 
-constexpr auto About = "Load and play Netease Cloud Music specific format (.ncm) files.\n" PEOJECT_HOST_REPO "\n";
+constexpr auto About = "Load and play Netease Cloud Music specific format (.ncm) files.\n" PROJECT_HOST_REPO "\n";
 
 DECLARE_COMPONENT_VERSION("Ncm Loader", NCM_LOADER_VERSION, About);
 

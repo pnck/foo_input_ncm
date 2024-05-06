@@ -10,4 +10,4 @@
 #include "foobar2000/SDK/foobar2000.h"
 #endif
 
-#define PEOJECT_HOST_REPO "https://github.com/pnck/foo_input_ncm"
+#define PROJECT_HOST_REPO "https://github.com/pnck/foo_input_ncm"

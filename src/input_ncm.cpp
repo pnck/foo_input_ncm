@@ -36,19 +36,32 @@ inline void fb2k_ncm::input_ncm::retag(const file_info &p_info, abort_callback &
     DEBUG_LOG("input_ncm::retag()");
     // Replay Gain
     file_info_impl cur_file_info;
-    decoder_->get_info(0, cur_file_info, p_abort);
+    source_info_writer_->get_info(0, cur_file_info, p_abort);
     cur_file_info.set_replaygain(p_info.get_replaygain());
     source_info_writer_->set_info(0, cur_file_info, p_abort);
     source_info_writer_->commit(p_abort);
 
     // Meta tags
-    auto meta = meta_processor(p_info);
-    ncm_file_->overwrite_meta(meta.dump(), p_abort);
+    // NOTE: Always do differential update, to maximally avoid appending "overwrite" key,
+    // which will change the "163 key xxxx" content.
+    auto target_json = meta_processor(p_info).dump();
+    this->get_info(cur_file_info, p_abort);
+    auto current_json = meta_processor(cur_file_info).dump();
+
+    if (current_json.contains(overwrite_key)) {
+        current_json.erase(overwrite_key);
+    }
+
+    auto diff = json_t::diff(current_json, target_json);
+    ncm_file_->overwrite_meta(json_t::object().patch(diff), p_abort);
 }
 
+/// @brief "Clear tags" => restore the meta field (163 key) to its original state
+/// @attention ReplayGain and embedded tags in the audio content are left untouched.
+/// @note ReplayGain can be wiped by retagging, since the meta diff would be empty then.
 inline void fb2k_ncm::input_ncm::remove_tags(abort_callback &p_abort) {
     DEBUG_LOG("input_ncm::remove_tags()");
-    source_info_writer_->remove_tags_fallback(p_abort);
+    // source_info_writer_->remove_tags_fallback(p_abort);
     ncm_file_->overwrite_meta(nlohmann::json(), p_abort);
 }
 

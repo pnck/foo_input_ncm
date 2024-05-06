@@ -8,6 +8,7 @@
 #include <string_view>
 #include <vector>
 
+#include "stdafx.h"
 #include "platform.hpp"
 
 using namespace std::string_view_literals;
@@ -58,7 +59,7 @@ namespace fb2k_ncm
     constexpr auto overwrite_key = "overwrite"sv;
     constexpr auto foo_input_ncm_comment_key = "foo_input_ncm_comment"sv;
     constexpr auto foo_input_ncm_comment = "These fields overwrite the original metainfo, "
-                                           "handled by <foo_input_ncm> component (" PEOJECT_HOST_REPO ")."sv;
+                                           "handled by <foo_input_ncm> component (" PROJECT_HOST_REPO ")."sv;
 
 } // namespace fb2k_ncm
 

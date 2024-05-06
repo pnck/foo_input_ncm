@@ -15,12 +15,14 @@
 #include "spdlog/sinks/base_sink.h"
 #include "spdlog/sinks/dist_sink.h"
 #include "spdlog/details/null_mutex.h"
-
 #include "nlohmann/json.hpp"
+
+#include "common/consts.hpp"
 
 #include <string>
 #include <memory>
 #include <mutex>
+#include <span>
 
 // https://fmt.dev/latest/api.html#udt
 template <>
@@ -55,7 +57,7 @@ struct fmt::formatter<nlohmann::json> : formatter<std::string> {
 template <>
 struct fmt::formatter<GUID> : formatter<string_view> {
     auto format(const GUID &guid, format_context &ctx) const {
-        // claud-3-sonnet
+        // by claud-3-sonnet
         auto formatted = fmt::format("{:08X}-{:04X}-{:04X}-{:02X}{:02X}-{:02X}{:02X}{:02X}{:02X}{:02X}{:02X}",
                                      guid.Data1,
                                      guid.Data2,
@@ -71,6 +73,49 @@ struct fmt::formatter<GUID> : formatter<string_view> {
         return formatter<string_view>::format(formatted, ctx);
     }
 };
+
+// by claud-3-sonnet
+template <>
+struct fmt::formatter<fb2k_ncm::ncm_file_st> : fmt::formatter<std::string> {
+    auto format(const fb2k_ncm::ncm_file_st &file, format_context &ctx) {
+        const uint8_t stub[] = {0xde, 0xad, 0xc0, 0xdd}; // DEADC0DE
+        auto &&fmt_stub = fmt::join(std::span(stub, sizeof(stub)), "");
+        auto formatted =
+            fmt::format("{{"
+                        "magic: {:#x}, "
+                        "unknown_gap_2b: [{:#x}, {:#x}], "
+                        "rc4_seed_len: {}, "
+                        "rc4_seed: {:X}, "
+                        "meta_len: {}, "
+                        "meta_content: {:X}, "
+                        "unknown_gap_5b: [{:#x}, {:#x}, {:#x}, {:#x}, {:#x}], "
+                        "album_image_size: [{}, {}], "
+                        "album_image: {:X}... , "
+                        "audio_content: {:X}..."
+                        "}}",
+                        file.magic,
+                        file.unknown_gap_2b[0],
+                        file.unknown_gap_2b[1],
+                        file.rc4_seed_len,
+                        (!!file.rc4_seed) ? fmt::join(std::span(file.rc4_seed, file.rc4_seed_len), "") : std::move(fmt_stub),
+                        file.meta_len,
+                        (!!file.meta_content) ? fmt::join(std::span(file.meta_content, file.meta_len), "") : std::move(fmt_stub),
+                        file.unknown_gap_5b[0],
+                        file.unknown_gap_5b[1],
+                        file.unknown_gap_5b[2],
+                        file.unknown_gap_5b[3],
+                        file.unknown_gap_5b[4],
+                        file.album_image_size[0],
+                        file.album_image_size[1],
+                        (!!file.album_image)
+                            ? fmt::join(std::span(file.album_image, file.album_image_size[0] <= 32 ? file.album_image_size[0] : 32), "")
+                            : std::move(fmt_stub),
+                        (!!file.audio_content) ? fmt::join(std::span(file.audio_content, 32), "") : std::move(fmt_stub));
+        return fmt::format_to(ctx.out(), "{}", formatted);
+    }
+};
+
+// --------- SPDLOG SINKS ---------
 
 template <typename Mutex>
 class fb2k_console_sink : public spdlog::sinks::base_sink<Mutex> {

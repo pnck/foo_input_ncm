@@ -327,23 +327,25 @@ void ncm_file::overwrite_meta(const nlohmann::json &meta, abort_callback &p_abor
     // passed
 
     // embed overwriting meta into the source
-    json_t live_meta = json_t::parse(meta_str_); // NOTE:  use unmodified raw json string.
+
+    auto meta_str_to_write = std::string("music:");
+    nlohmann::ordered_json live_meta = nlohmann::ordered_json::parse(meta_str_); // NOTE: use unmodified raw json string to keep stricted order
     if (live_meta.contains(overwrite_key)) {
         live_meta.erase(overwrite_key); // replace the old key
     }
 
-    if (!meta.is_null()) {
+    if (meta.size()) {
         live_meta[overwrite_key] = meta;
         live_meta[overwrite_key].emplace(foo_input_ncm_comment_key, foo_input_ncm_comment);
     }
-    auto meta_str_to_write = std::string("music:") + live_meta.dump();
+    meta_str_to_write += live_meta.dump();
 
     DEBUG_LOG_F("Overwriting meta (to {}): {}", this->path(), meta_str_to_write);
 
     // NOTE: meta json processing:
     // 1. read <meta_len>
     // 2. XOR each byte by 0x63
-    // 3. format: "164 key(Don't modify):<base64>"
+    // 3. format: "163 key(Don't modify):<base64>"
     // 4. base64 decode
     // 5. AES ECB decrypt (pkcs#7 padding)
     // 6. "music:" <json>
