@@ -26,19 +26,23 @@ namespace fb2k_ncm
     class ncm_file : public file {
         FB2K_MAKE_SERVICE_INTERFACE(ncm_file, file);
 
+        struct ncm_file_parsed_st : public ncm_file_st {
+            // ...
+            // end of original file structure
+
+            // offsets inside the file - pointers are actually not used
+            // offsets are always parsed no matter what target is specified
+            uint64_t rc4_seed_offset;
+            uint64_t meta_offset;
+            uint64_t album_image_offset;
+            uint64_t audio_content_offset;
+        };
+
     public:
         enum parse_targets : uint16_t {
             NCM_PARSE_META = 0b1,
             NCM_PARSE_ALBUM = 0b10,
             NCM_PARSE_AUDIO = 0b100,
-        };
-        struct meta_error; // exception indicating meta json parsing error
-
-        struct ncm_file_parsed_st : public ncm_file_st {
-            // ...
-            // end of original file structure
-            uint64_t album_image_offset;
-            uint64_t audio_content_offset;
         };
 
     public:
@@ -69,15 +73,14 @@ namespace fb2k_ncm
         inline void ensure_audio_offset();
         inline void ensure_decryptor();
         [[nodiscard]] auto make_seek_guard(abort_callback &p_abort = fb2k::noAbort);
-        //
-        void merge_overwrite_meta();
 
     public:
         inline auto &meta_info() { return meta_json_; }
-        inline auto &image_data() { return image_data_; }
+        inline auto &image_data() { return album_image_data_; }
         inline auto path() const { return this_path_; }
-        inline bool meta_parsed() const { return !meta_str_.empty(); }
-        inline bool audio_parsed() const { return !parsed_file_.audio_content_offset; }
+        inline bool meta_parsed() const { return meta_str_.size() > 0; }
+        inline bool audio_key_parsed() const { return rc4_decryptor_.is_valid(); }
+        inline bool album_image_parsed() const { return album_image_data_.capacity() > 0; }
         inline std::string_view saved_raw_path() const { return path_raw_saved_to_; }
 
     private:
@@ -90,15 +93,10 @@ namespace fb2k_ncm
         std::string meta_str_;
         nlohmann::json meta_json_;
         cipher::abnormal_RC4 rc4_decryptor_;
-        std::vector<uint8_t> image_data_;
+        std::vector<uint8_t> album_image_data_;
         std::string path_raw_saved_to_;
     };
 
     FOOGUIDDECL constexpr GUID ncm_file::class_guid = guid_candidates[1];
 
 } // namespace fb2k_ncm
-
-struct fb2k_ncm::ncm_file::meta_error : public std::runtime_error {
-    meta_error(const char *msg) : std::runtime_error(fmtlib::format("meta error: {}", msg)) {}
-    meta_error(const std::string &msg) : std::runtime_error(fmtlib::format("meta error: {}", msg)) {}
-};

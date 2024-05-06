@@ -46,7 +46,7 @@ inline void ncm_file::throw_format_error(const std::string &extra) {
 
 auto ncm_file::make_seek_guard(abort_callback &p_abort) {
     auto defer =
-        [this, &p_abort, p = source_->get_position(p_abort), off = parsed_file_.audio_content_offset, &parsed = parsed_file_](...) {
+        [this, &p_abort, p = source_->get_position(p_abort), off = parsed_file_.audio_content_offset, &parsed = parsed_file_](auto...) {
             // RAII guard, will seek back when function returns
             if (p > off) { // lands in audio
                 source_->seek(parsed.audio_content_offset + (p - off), p_abort);
@@ -162,9 +162,10 @@ void ncm_file::parse(uint16_t to_parse /* = 0xff*/) {
     }
 
     // skip gap
-    source_->seek_ex(2, file::t_seek_mode::seek_from_current, p_abort);
+    source_->read(&parsed_file_.unknown_gap_2b, 2, p_abort);
     // extract rc4 key for audio content decoding
     source_->read(&parsed_file_.rc4_seed_len, sizeof(parsed_file_.rc4_seed_len), p_abort);
+    parsed_file_.rc4_seed_offset = source_->get_position(p_abort);
     if (!(to_parse & parse_targets::NCM_PARSE_AUDIO)) {
         source_->seek_ex(parsed_file_.rc4_seed_len, file::t_seek_mode::seek_from_current, p_abort);
         goto STATE_END_AUDIORC4;
@@ -192,12 +193,12 @@ void ncm_file::parse(uint16_t to_parse /* = 0xff*/) {
             _beg += rc4key_magic.size();
             _end -= cipher::guess_padding(_end);
             rc4_decryptor_ = cipher::abnormal_RC4(_beg, _end);
-            parsed_file_.rc4_seed = rc4_decryptor_.key_seed().data();
         }
     }
 STATE_END_AUDIORC4:
     // get meta info json
     source_->read(&parsed_file_.meta_len, sizeof(parsed_file_.meta_len), p_abort);
+    parsed_file_.meta_offset = source_->get_position(p_abort);
     if (!(to_parse & parse_targets::NCM_PARSE_META)) {
         source_->seek_ex(parsed_file_.meta_len, file::t_seek_mode::seek_from_current, p_abort);
         goto STATE_END_META;
@@ -231,7 +232,6 @@ STATE_END_AUDIORC4:
             }
             // skip heading `music:`
             meta_str_.assign(reinterpret_cast<const char *>(&meta_raw[6]), reinterpret_cast<const char *>(&meta_raw[total]));
-            parsed_file_.meta_content = reinterpret_cast<uint8_t *>(meta_str_.data());
             meta_json_ = json_t::parse(meta_str_.c_str());
             if (!meta_json_.is_object()) {
                 WARN_LOG("Failed to parse meta info of ncm file: ", this->path());
@@ -244,21 +244,21 @@ STATE_END_AUDIORC4:
 
 STATE_END_META:
     // skip gap
-    source_->seek_ex(sizeof(parsed_file_.unknown_data), file::t_seek_mode::seek_from_current, p_abort);
+    source_->read(&parsed_file_.unknown_gap_5b, sizeof(parsed_file_.unknown_gap_5b), p_abort);
     // get album image
     source_->read(&parsed_file_.album_image_size, sizeof(parsed_file_.album_image_size), p_abort);
+    parsed_file_.album_image_offset = source_->get_position(p_abort);
     if (!(to_parse & parse_targets::NCM_PARSE_ALBUM)) {
         source_->seek_ex(parsed_file_.album_image_size[0], file::t_seek_mode::seek_from_current, p_abort);
         goto STATE_END_ALBUMIMG;
     } else {
         if (!parsed_file_.album_image_size[0]) {
             WARN_LOG("No album image found in ncm file: ", this->path());
+            album_image_data_.reserve(8); // smallest heap chunk; album_image_parsed() is determined by its capacity
             goto STATE_END_ALBUMIMG;
         }
-        parsed_file_.album_image_offset = source_->get_position(p_abort);
-        image_data_.resize(parsed_file_.album_image_size[0]);
-        source_->read(image_data_.data(), image_data_.size(), p_abort);
-        parsed_file_.album_image = image_data_.data();
+        album_image_data_.resize(parsed_file_.album_image_size[1]); // guess: img[0] => total size; img[1] => size_1
+        source_->read(album_image_data_.data(), album_image_data_.size(), p_abort);
     }
 STATE_END_ALBUMIMG:
     // remember where audio content starts
@@ -266,7 +266,7 @@ STATE_END_ALBUMIMG:
 }
 
 bool ncm_file::save_raw_audio(const char *to_dir, abort_callback &p_abort) {
-    if (!audio_parsed() || !meta_parsed()) {
+    if (!audio_key_parsed() || !meta_parsed()) {
         parse(parse_targets::NCM_PARSE_AUDIO | parse_targets::NCM_PARSE_META);
     }
     ENSURE_DECRYPTOR();
@@ -307,7 +307,7 @@ bool ncm_file::save_raw_audio(const char *to_dir, abort_callback &p_abort) {
     } catch (const exception_aborted &) {
         DEBUG_LOG("Aborted: ", path());
     } catch (const pfc::exception &e) {
-        ERROR_LOG("", e.what(), " (writing ", output, ") ");
+        ERROR_LOG(e.what(), " (writing ", output, ") ");
     }
     DEBUG_LOG("Extraction failed: ", path());
     path_raw_saved_to_.clear();
@@ -316,7 +316,7 @@ bool ncm_file::save_raw_audio(const char *to_dir, abort_callback &p_abort) {
 
 void ncm_file::overwrite_meta(const nlohmann::json &meta, abort_callback &p_abort) {
     if (!meta_parsed()) {
-        this->parse(); // parse all => about to move the remaining contents
+        this->parse(parse_targets::NCM_PARSE_META);
     }
     auto _seek_guard_ = make_seek_guard();
 
@@ -384,32 +384,94 @@ void ncm_file::overwrite_meta(const nlohmann::json &meta, abort_callback &p_abor
     _step1_handle_padding();
     _step2_aes(reinterpret_cast<uint8_t *>(meta_str_to_write.data()));
     auto meta_b64 = _step3_base64(meta_str_to_write.data());
-    const size_t new_meta_raw_len = meta_b64.get_length();
+    const uint32_t new_meta_raw_len = static_cast<uint32_t>(meta_b64.get_length());
     auto new_meta_raw = _step4_xor(std::move(meta_b64));
 
+    // NOTE: to be as transactional as possible,
+    // a temp file is used to store the whole content, and then write back to the source file at once.
+
     file_ptr tmp_file;
-    filesystem::g_open_temp(tmp_file, p_abort);
-    {
-        size_t untouched_size = 14 /*offsetof(ncm_file_st, rc4_seed)*/ + parsed_file_.rc4_seed_len;
-        uint8_t untouched_buffer[512 /*rc4_seed_len is never longer than 256*/];
-        source_->seek_ex(0, seek_from_beginning, p_abort);
-        source_->read(untouched_buffer, untouched_size, p_abort);
-        tmp_file->write(untouched_buffer, untouched_size, p_abort);
+    if (source_->get_size(fb2k::noAbort) > max_memfile_size) {
+        filesystem::g_open_temp(tmp_file, p_abort);
+    } else {
+        filesystem::g_open_tempmem(tmp_file, p_abort);
     }
-    tmp_file->write_lendian_t(static_cast<uint32_t>(new_meta_raw_len), p_abort);
+
+    source_->seek(0, p_abort);
+    file::g_transfer(source_, tmp_file, parsed_file_.meta_offset - sizeof(parsed_file_.meta_len), p_abort);
+
+    tmp_file->write_lendian_t(new_meta_raw_len, p_abort);
     tmp_file->write(new_meta_raw.get(), new_meta_raw_len, p_abort);
-    // finish transferring remaiing data
-    source_->seek_ex(14 /*offsetof(ncm_file_st, rc4_seed)*/ + parsed_file_.rc4_seed_len, seek_from_beginning, p_abort);
-    source_->seek_ex(sizeof(parsed_file_.meta_len) + parsed_file_.meta_len, seek_from_current, p_abort);
-    file::g_transfer(source_, tmp_file, source_->get_remaining(p_abort), p_abort);
-    // write back to current file
-    tmp_file->seek_ex(0, seek_from_beginning, p_abort);
-    source_->seek_ex(0, seek_from_beginning, p_abort);
-    source_->set_eof(p_abort);
-    file::g_transfer(tmp_file, source_, tmp_file->get_size(p_abort), p_abort);
+
+    // fix offset when everything is done
+    auto defer = [&, l = new_meta_raw_len, cur_offset = tmp_file->get_position(p_abort)](auto...) {
+        parsed_file_.meta_len = l;
+        parsed_file_.meta_offset = cur_offset - l;
+        parsed_file_.album_image_offset = cur_offset + sizeof(parsed_file_.unknown_gap_5b) + sizeof(parsed_file_.album_image_size);
+        parsed_file_.audio_content_offset = parsed_file_.album_image_offset + parsed_file_.album_image_size[0];
+    };
+    auto _defer_guard_ = std::shared_ptr<void>(nullptr, defer);
+
+    // copy remaining content
+    source_->seek_ex(parsed_file_.meta_offset + parsed_file_.meta_len, seek_from_beginning, p_abort);
+    uint64_t remain_size = source_->get_size(p_abort) - source_->get_position(p_abort);
+    file::g_transfer(source_, tmp_file, remain_size, p_abort);
+
+    // commit to current file
+    tmp_file->seek(0, fb2k::noAbort);
+    source_->truncate(0, fb2k::noAbort);
+    file::g_transfer_file(tmp_file, source_, p_abort);
     source_->commit(fb2k::noAbort);
 }
 
 void ncm_file::reset_album_image(album_art_data_ptr image, abort_callback &p_abort) {
-    throw pfc::exception_not_implemented();
+    if (!album_image_parsed()) {
+        this->parse(parse_targets::NCM_PARSE_ALBUM);
+    }
+    auto _seek_guard_ = make_seek_guard();
+
+    // NOTE: also transactional
+
+    file_ptr tmp_file;
+    if (source_->get_size(fb2k::noAbort) > max_memfile_size) {
+        filesystem::g_open_temp(tmp_file, p_abort);
+    } else {
+        filesystem::g_open_tempmem(tmp_file, p_abort);
+    }
+
+    source_->seek(0, p_abort);
+    file::g_transfer(source_, tmp_file, parsed_file_.album_image_offset - sizeof(parsed_file_.album_image_size), p_abort);
+
+    uint32_t img_size = 0;
+    if (image.is_valid()) {
+        img_size = static_cast<uint32_t>(image->get_size());
+    }
+
+    tmp_file->write_lendian_t(img_size, p_abort);
+    tmp_file->write_lendian_t(img_size, p_abort);
+    if (img_size) {
+        tmp_file->write(image->get_ptr(), img_size, p_abort);
+    }
+
+    auto defer = [&, l = img_size, cur_offset = tmp_file->get_position(fb2k::noAbort)](auto...) {
+        parsed_file_.album_image_size[0] = l;
+        parsed_file_.album_image_size[1] = l;
+        parsed_file_.album_image_offset = cur_offset - l;
+        parsed_file_.audio_content_offset = cur_offset;
+    };
+    auto _defer_guard_ = std::shared_ptr<void>(nullptr, defer);
+
+    source_->seek(parsed_file_.audio_content_offset, p_abort);
+    auto remain_size = source_->get_size(p_abort) - parsed_file_.audio_content_offset;
+    file::g_transfer(source_, tmp_file, remain_size, p_abort);
+
+    source_->set_eof(p_abort);
+    source_->write(&parsed_file_.album_image_size, sizeof(parsed_file_.album_image_size), p_abort);
+    if (img_size) {
+        source_->write(image->get_ptr(), img_size, p_abort);
+    }
+    tmp_file->seek(0, fb2k::noAbort);
+    source_->truncate(0, fb2k::noAbort);
+    file::g_transfer_file(tmp_file, source_, p_abort);
+    source_->commit(fb2k::noAbort);
 }

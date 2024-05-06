@@ -13,7 +13,7 @@
 using namespace std::string_view_literals;
 
 constexpr inline GUID guid_candidates[] = {
-    {0x0ef1cb99, 0x91ad, 0x486c, {0x82, 0x82, 0xda, 0x70, 0x98, 0x4e, 0xa8, 0x51}}, // input_ncm service
+    {0x0ef1cb99, 0x91ad, 0x486c, {0x82, 0x82, 0xda, 0x70, 0x98, 0x4e, 0xa8, 0x51}}, // input_ncm service, + album_art related
     {0x9c99d51e, 0x1228, 0x4f25, {0x91, 0x63, 0xf1, 0x56, 0x1e, 0x57, 0x5b, 0x13}}, // ncm_file service
     {0xdb2c5ae1, 0x1a4c, 0x4c67, {0xb4, 0x13, 0xc9, 0xd9, 0x46, 0x34, 0xe2, 0xaf}}, // context menu
     {0xc2cb5fa6, 0x9d9f, 0x47ec, {0xae, 0x3a, 0x18, 0x5f, 0xc7, 0x98, 0xd6, 0x2c}},
@@ -40,18 +40,19 @@ namespace fb2k_ncm
     /// @attention Don't use offsetof() macro due to the alignment issue
     struct ncm_file_st {
         uint64_t magic = ncm_magic;
-        uint8_t unknown_padding[2];
+        uint8_t unknown_gap_2b[2];
         uint32_t rc4_seed_len;   // length of rc4_seed *field*, padding included
         const uint8_t *rc4_seed; // encrypted by AES, "neteasecloudmusic..."
         uint32_t meta_len;
         const uint8_t *meta_content; // base64 encoding, "163 key(Don't modify):${(AES encrypted)}"
-        uint8_t unknown_data[5];
+        uint8_t unknown_gap_5b[5];
         uint32_t album_image_size[2]; // there are 2 exactly same field
         const uint8_t *album_image;
         const uint8_t *audio_content;
     };
 
     constexpr int max_thread_count = 8; // recommended number of threads (hint)
+    constexpr uint64_t max_memfile_size = 20 * 1024 * 1024; // 20MB
 
     constexpr auto meta_b64_hint = "163 key(Don't modify):"sv;
     constexpr auto overwrite_key = "overwrite"sv;

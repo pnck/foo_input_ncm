@@ -52,6 +52,26 @@ struct fmt::formatter<nlohmann::json> : formatter<std::string> {
     auto format(const nlohmann::json &json, format_context &ctx) const { return formatter<std::string>::format(json.dump(), ctx); }
 };
 
+template <>
+struct fmt::formatter<GUID> : formatter<string_view> {
+    auto format(const GUID &guid, format_context &ctx) const {
+        // claud-3-sonnet
+        auto formatted = fmt::format("{:08X}-{:04X}-{:04X}-{:02X}{:02X}-{:02X}{:02X}{:02X}{:02X}{:02X}{:02X}",
+                                     guid.Data1,
+                                     guid.Data2,
+                                     guid.Data3,
+                                     guid.Data4[0],
+                                     guid.Data4[1],
+                                     guid.Data4[2],
+                                     guid.Data4[3],
+                                     guid.Data4[4],
+                                     guid.Data4[5],
+                                     guid.Data4[6],
+                                     guid.Data4[7]);
+        return formatter<string_view>::format(formatted, ctx);
+    }
+};
+
 template <typename Mutex>
 class fb2k_console_sink : public spdlog::sinks::base_sink<Mutex> {
     using base_t = spdlog::sinks::base_sink<Mutex>;

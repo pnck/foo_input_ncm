@@ -89,7 +89,7 @@ void input_ncm::open(foobar2000_io::file::ptr p_filehint, const char *p_path, t_
 
     // walk through the file structure
     // parse() won't decrypt the whole file, so we can always parse metadata and audio info at the same time.
-    if (!(ncm_file_->meta_parsed() && ncm_file_->audio_parsed())) {
+    if (!(ncm_file_->meta_parsed() && ncm_file_->audio_key_parsed())) {
         ncm_file_->parse(ncm_file::parse_targets::NCM_PARSE_META | ncm_file::parse_targets::NCM_PARSE_AUDIO);
     }
 

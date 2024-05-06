@@ -24,7 +24,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\album_art_extractor.hpp">
+    <ClInclude Include="src\album_art.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\input_ncm.hpp">
@@ -77,7 +77,7 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\album_art_extractor.cpp">
+    <ClCompile Include="src\album_art.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\input_ncm.cpp">

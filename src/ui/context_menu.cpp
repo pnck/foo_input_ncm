@@ -187,7 +187,7 @@ namespace fb2k_ncm::ui
                     retagger->commit(fb2k::noAbort); // do not interrupt committing
                     retagger = nullptr;              // release, to let album editor reopen the file
 
-                    // embed album art
+                    // embeded album art
                     auto album_extractor = album_art_extractor::g_open(ncm_file, ncm_file->path(), p_abort);
                     auto album_writer = album_art_editor::g_open(nullptr, to_retag, p_abort);
                     if (album_extractor.is_valid() && album_writer.is_valid()) {
