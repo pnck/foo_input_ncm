@@ -16,7 +16,9 @@
 - [x] Fully integrated with the powerful built-in _`metadb`_ system, enabling efficient searching and strong management capabilities.
 - [x] Unwrap/Convert `.ncm` to normal `.mp3` or `.flac` format with blazing speed.
 - [x] Edit `replay gain`/`metadata`/`album art` in place.
-  - *Will be unrecognizable by the _NCM player_ after editing tags. Reset it by `Remove tags` utility. (Properties - Tools - Remove tags)
+
+Constraints and compromises are noted in [reminders.md](/docs/reminders.md).
+
 
 ### Compatibility
 
