@@ -67,29 +67,11 @@ namespace fb2k_ncm::cipher::details
             return kCCAlgorithmAES;
         }
 
-        STATUS init(aes_chain_mode M, CCOperation op) {
-            CCOptions option;
-            switch (M) {
-            case aes_chain_mode::ECB:
-                option = kCCOptionECBMode;
-                break;
-            case aes_chain_mode::CBC:
-                option = 0;
-                break;
-            default:
-                return kCCParamError;
-            }
-
-            if (key_.size() != key_len()) {
-                return kCCKeySizeError;
-            }
-            auto status = CCCryptorCreate(op, kCCAlgorithmAES, option, key_.data(), key_len(), NULL, &cryptor_);
-            return status;
-        }
+        STATUS init(aes_chain_mode M, CCOperation op);
     };
 
     class AES_context_macos : public AES_context_common {
-        using base = AES_context_common;
+        using base_t = AES_context_common;
 
         template <size_t KEYLEN>
         using AES = AES_cipher_macos<KEYLEN>;
@@ -102,14 +84,17 @@ namespace fb2k_ncm::cipher::details
         inline auto &set_output(std::vector<uint8_t> &output) { CHAINED(set_output, output); }
         inline auto &set_output(uint8_t *output, size_t size) { CHAINED(set_output, output, size); }
         inline auto &set_chain_mode(aes_chain_mode mode) { CHAINED(set_chain_mode, mode); }
-        inline auto &decrypt_all() { CHAINED(decrypt_all); }
         inline auto &decrypt_chunk(size_t chunk_size) { CHAINED(decrypt_chunk, chunk_size); }
         inline auto &decrypt_next() { CHAINED(decrypt_next); }
-        inline void finish() { base::finish(); }
+        inline auto &decrypt_all() { CHAINED(decrypt_all); }
+        inline auto &encrypt_chunk(size_t chunk_size) { CHAINED(encrypt_chunk, chunk_size); }
+        inline auto &encrypt_next() { CHAINED(encrypt_next); }
+        inline auto &encrypt_all() { CHAINED(encrypt_all); }
+        inline void finish() { base_t::finish(); }
 
     public:
         template <size_t KEYLEN>
-        explicit AES_context_macos(AES_cipher_macos<KEYLEN> &&c) : base() {
+        explicit AES_context_macos(AES_cipher_macos<KEYLEN> &&c) : base_t() {
             if constexpr (std::is_constructible_v<decltype(cipher_), decltype(c)>) {
                 cipher_ = std::move(c);
             } else {
@@ -123,7 +108,7 @@ namespace fb2k_ncm::cipher::details
             if (this == &tmp) {
                 return;
             }
-            base::operator=(std::move(tmp));
+            base_t::operator=(std::move(tmp));
             cipher_ = std::move(tmp.cipher_);
         }
 
@@ -138,6 +123,8 @@ namespace fb2k_ncm::cipher::details
         void do_prepare() override;
         void do_finish() override;
         size_t do_decrypt(const aes_chain_mode M, uint8_t *dst, const size_t cb_dst, const uint8_t *src, const size_t cb_src) override;
+        size_t do_encrypt(const aes_chain_mode M, uint8_t *dst, const size_t cb_dst, const uint8_t *src, const size_t cb_src) override;
+        size_t do_cryptor_update(uint8_t *dst, const size_t cb_dst, const uint8_t *src, const size_t cb_src);
     };
 } // namespace fb2k_ncm::cipher::details
 

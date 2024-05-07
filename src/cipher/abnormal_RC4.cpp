@@ -6,9 +6,14 @@
 
 using namespace fb2k_ncm::cipher;
 
-fb2k_ncm::cipher::abnormal_RC4::abnormal_RC4(const uint8_t *seed, size_t len) : abnormal_RC4() {
-    key_seed_.assign(seed, seed + len);
+abnormal_RC4::abnormal_RC4(const uint8_t *beg, const uint8_t *end) : abnormal_RC4(std::vector<uint8_t>{beg, end}) {}
+
+abnormal_RC4::abnormal_RC4(const std::vector<uint8_t> &seed) : abnormal_RC4(seed.data(), seed.size()) {}
+
+abnormal_RC4::abnormal_RC4(const uint8_t *seed, size_t len) {
     len &= 0xff;
+    key_seed_.assign(seed, seed + len);
+
     uint8_t key_box[256];
     for (int i = 0; i < 256; ++i) {
         key_box[i] = i;
@@ -34,16 +39,14 @@ std::function<uint8_t(uint8_t, size_t)> fb2k_ncm::cipher::abnormal_RC4::get_tran
     return [this](uint8_t b, size_t offset) -> uint8_t { return b ^ key_box_[offset & 0xff]; };
 }
 
-abnormal_RC4::abnormal_RC4(const abnormal_RC4 &c)
-    : key_seed(key_seed_), key_seed_(c.key_seed_), key_box_(c.key_box_), counter_(c.counter_) {}
+abnormal_RC4::abnormal_RC4(const abnormal_RC4 &c) : key_seed_(c.key_seed_), key_box_(c.key_box_), counter_(c.counter_) {}
 abnormal_RC4 &abnormal_RC4::operator=(const abnormal_RC4 &c) {
     key_seed_ = c.key_seed_;
     key_box_ = c.key_box_;
     counter_ = c.counter_;
     return *this;
 }
-abnormal_RC4::abnormal_RC4(abnormal_RC4 &&c)
-    : key_seed(key_seed_), key_seed_(std::move(c.key_seed_)), key_box_(std::move(c.key_box_)), counter_(c.counter_) {}
+abnormal_RC4::abnormal_RC4(abnormal_RC4 &&c) : key_seed_(std::move(c.key_seed_)), key_box_(std::move(c.key_box_)), counter_(c.counter_) {}
 abnormal_RC4 &abnormal_RC4::operator=(abnormal_RC4 &&c) {
     key_seed_ = std::move(c.key_seed_);
     key_box_ = std::move(c.key_box_);

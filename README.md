@@ -2,20 +2,23 @@
 ![GitHub Release](https://img.shields.io/github/v/release/pnck/foo_input_ncm)
 ![GitHub Release Date](https://img.shields.io/github/release-date/pnck/foo_input_ncm)
 
-## Play NCM files directly with our favourite
+## Play NCM files directly with our favorite
 
 - On Windows
-  ![screenshot-win](/doc/screenshot-win.png)
+  ![screenshot-win](/docs/screenshot-win.png)
 
 - Or on MacOS
-  ![screenshot-mac](/doc/screenshot-mac.png)
+  ![screenshot-mac](/docs/screenshot-mac.png)
 
 
 ### Features
 - [x] Seamlessly load and play `.ncm` format files in _foobar2000_.
 - [x] Fully integrated with the powerful built-in _`metadb`_ system, enabling efficient searching and strong management capabilities.
 - [x] Unwrap/Convert `.ncm` to normal `.mp3` or `.flac` format with blazing speed.
-- [ ] ReplayGain and retagging support.
+- [x] Edit `replay gain`/`metadata`/`album art` in place.
+
+Constraints and compromises are noted in [reminders.md](/docs/reminders.md).
+
 
 ### Compatibility
 
@@ -35,6 +38,6 @@
 - [foo_input_msu](https://github.com/qwertymodo/foo_input_msu) by [qwertymodo](https://github.com/qwertymodo)
 - [foo_input_nemuc](https://github.com/hozuki/foo_input_nemuc) by [hozuki](https://github.com/hozuki)
 - [foo_input_spotify](https://github.com/FauxFaux/foo_input_spotify) by [FauxFaux](https://github.com/FauxFaux)
-- The very detailed [develop tutorio](http://yirkha.fud.cz/tmp/496351ef.tutorial-draft.html) for starters
+- The very detailed [development tutorial](http://yirkha.fud.cz/tmp/496351ef.tutorial-draft.html) for starters
 - Official component samples included in [foobar2000 sdk](https://www.foobar2000.org/SDK)
-- And the [ncmdump](https://github.com/anonymous5l/ncmdump) which encourages me doing a lot of research on the file structure
+- And the [ncmdump](https://github.com/anonymous5l/ncmdump) which encourages me to do a lot of research on the file structure

@@ -48,13 +48,15 @@ void AES_context_win32::do_prepare() {
         output_head_ = p->data();
         output_buffer_size_ = p->size();
     }
-    in_progress_ = true;
 }
-
-size_t AES_context_win32::do_decrypt(const aes_chain_mode M, uint8_t *dst, const size_t cb_dst, const uint8_t *src, const size_t cb_src) {
+template <AES_context_win32::OP op>
+size_t AES_context_win32::do_crypt_universal( // -*-
+    const ::fb2k_ncm::cipher::aes_chain_mode M,
+    uint8_t *dst,
+    const size_t cb_dst,
+    const uint8_t *src,
+    const size_t cb_src) {
     auto h_key = std::visit([this](auto &&_) { return internal_get_key_handle(_); }, cipher_);
-    // M is refactored from template argument to function argument
-    // so a runtime lookup is needed to replace the compile-time constant, though it's really dumb
     auto get_mapped_str = [M]() {
         switch (M) {
         case aes_chain_mode::ECB:
@@ -66,19 +68,88 @@ size_t AES_context_win32::do_decrypt(const aes_chain_mode M, uint8_t *dst, const
         }
     };
     auto mode_str = get_mapped_str();
-    if (!SUCCESS(status_ = BCryptSetProperty(h_key, BCRYPT_CHAINING_MODE, (PUCHAR)mode_str, sizeof(mode_str), 0))) {
+
+    if (auto status_ = BCryptSetProperty(h_key, BCRYPT_CHAINING_MODE, (PUCHAR)mode_str, sizeof(mode_str), 0); !SUCCESS(status_)) {
         throw cipher_error("BCryptSetProperty set chain mode failed", status_);
     }
     ULONG required_size = 0;
-    if (!SUCCESS(status_ = BCryptDecrypt(h_key, (PUCHAR)src, (ULONG)cb_src, NULL, NULL, 0, NULL, 0, &required_size,
-                                         0 /*BCRYPT_BLOCK_PADDING*/))) {
-        throw cipher_error("Cannot get required size", status_);
-    }
-    if (!SUCCESS(status_ = BCryptDecrypt(h_key, (PUCHAR)src, (ULONG)cb_src, NULL, NULL, 0, (PUCHAR)dst, (ULONG)cb_dst, &required_size,
-                                         0 /*BCRYPT_BLOCK_PADDING*/))) {
-        throw cipher_error("BCryptDecrypt failed", status_);
+    if (op == OP::DEC) {
+        if (auto status_ = BCryptDecrypt( // -*-
+                h_key,
+                (PUCHAR)src,
+                (ULONG)cb_src,
+                NULL,
+                NULL,
+                0,
+                NULL,
+                0,
+                &required_size,
+                0 /*BCRYPT_BLOCK_PADDING*/
+            );
+            !SUCCESS(status_)) {
+            throw cipher_error("Cannot get required size", status_);
+        }
+        if (required_size > cb_dst) {
+            throw cipher_error("Output buffer is too small", STATUS_BUFFER_TOO_SMALL);
+        }
+        if (auto status_ = BCryptDecrypt( // -*-
+                h_key,
+                (PUCHAR)src,
+                (ULONG)cb_src,
+                NULL,
+                NULL,
+                0,
+                (PUCHAR)dst,
+                (ULONG)cb_dst,
+                &required_size,
+                0 /*BCRYPT_BLOCK_PADDING*/
+            );
+            !SUCCESS(status_)) {
+            throw cipher_error("BCryptDecrypt failed", status_);
+        }
+    } else if (op == OP::ENC) {
+        auto padding_mode = (M == aes_chain_mode::ECB ? 0 : BCRYPT_BLOCK_PADDING);
+        if (auto status_ = BCryptEncrypt( // -*-
+                h_key,
+                (PUCHAR)src,
+                (ULONG)cb_src,
+                NULL,
+                NULL,
+                0,
+                NULL,
+                0,
+                &required_size,
+                padding_mode);
+            !SUCCESS(status_)) {
+            throw cipher_error("Cannot get required size", status_);
+        }
+        if (required_size > cb_dst) {
+            throw cipher_error("Output buffer is too small", STATUS_BUFFER_TOO_SMALL);
+        }
+        if (auto status_ = BCryptEncrypt( // -*-
+                h_key,
+                (PUCHAR)src,
+                (ULONG)cb_src,
+                NULL,
+                NULL,
+                0,
+                (PUCHAR)dst,
+                (ULONG)cb_dst,
+                &required_size,
+                padding_mode);
+            !SUCCESS(status_)) {
+            throw cipher_error("BCryptEncrypt failed", status_);
+        }
     }
     return required_size;
+}
+
+size_t AES_context_win32::do_decrypt(const aes_chain_mode M, uint8_t *dst, const size_t cb_dst, const uint8_t *src, const size_t cb_src) {
+    return do_crypt_universal<OP::DEC>(M, dst, cb_dst, src, cb_src);
+}
+
+size_t AES_context_win32::do_encrypt(const aes_chain_mode M, uint8_t *dst, const size_t cb_dst, const uint8_t *src, const size_t cb_src) {
+    return do_crypt_universal<OP::ENC>(M, dst, cb_dst, src, cb_src);
 }
 
 void AES_context_win32::do_finish() {

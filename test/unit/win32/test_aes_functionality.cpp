@@ -1,6 +1,8 @@
 #include "stdafx.h"
+#include "gtest/gtest.h"
 #include "cipher/aes.hpp"
 #include <memory>
+#include <vector>
 
 using namespace fb2k_ncm::cipher;
 
@@ -30,26 +32,58 @@ protected:
         ASSERT_EQ(16, cbOutput);
         // ecb encrypt/decrypt
         ASSERT_GE(BCryptSetProperty(h_key_, BCRYPT_CHAINING_MODE, (PUCHAR)BCRYPT_CHAIN_MODE_ECB, sizeof(BCRYPT_CHAIN_MODE_ECB), 0), 0);
-        ASSERT_GE(BCryptEncrypt(h_key_, (PUCHAR)random_plain_data_, sizeof(random_plain_data_), NULL, NULL, 0, encrypted_data_ecb_,
-                                sizeof(encrypted_data_ecb_), &cbResult, BCRYPT_BLOCK_PADDING),
+        ASSERT_GE(BCryptEncrypt(h_key_,
+                                (PUCHAR)random_plain_data_,
+                                sizeof(random_plain_data_),
+                                NULL,
+                                NULL,
+                                0,
+                                encrypted_data_ecb_,
+                                sizeof(encrypted_data_ecb_),
+                                &cbResult,
+                                BCRYPT_BLOCK_PADDING),
                   0);
         ASSERT_EQ(sizeof(encrypted_data_ecb_), cbResult);
         auto _p = std::make_unique<uint8_t[]>(sizeof(encrypted_data_ecb_));
-        ASSERT_GE(BCryptDecrypt(h_key_, (PUCHAR)encrypted_data_ecb_, sizeof(encrypted_data_ecb_), NULL, NULL, 0, (PUCHAR)_p.get(),
-                                sizeof(encrypted_data_ecb_), &cbResult, BCRYPT_BLOCK_PADDING),
+        ASSERT_GE(BCryptDecrypt(h_key_,
+                                (PUCHAR)encrypted_data_ecb_,
+                                sizeof(encrypted_data_ecb_),
+                                NULL,
+                                NULL,
+                                0,
+                                (PUCHAR)_p.get(),
+                                sizeof(encrypted_data_ecb_),
+                                &cbResult,
+                                BCRYPT_BLOCK_PADDING),
                   0);
         ASSERT_EQ(sizeof(random_plain_data_), cbResult);
         ASSERT_EQ(memcmp(random_plain_data_, _p.get(), sizeof(random_plain_data_)), 0);
         // cbc encrypt/decrypt
         ASSERT_GE(BCryptSetProperty(h_key_, BCRYPT_CHAINING_MODE, (PUCHAR)BCRYPT_CHAIN_MODE_CBC, sizeof(BCRYPT_CHAIN_MODE_CBC), 0), 0);
-        ASSERT_GE(BCryptEncrypt(h_key_, (PUCHAR)random_plain_data_, sizeof(random_plain_data_), NULL, NULL, 0, encrypted_data_cbc_,
-                                sizeof(encrypted_data_cbc_), &cbResult, BCRYPT_BLOCK_PADDING),
+        ASSERT_GE(BCryptEncrypt(h_key_,
+                                (PUCHAR)random_plain_data_,
+                                sizeof(random_plain_data_),
+                                NULL,
+                                NULL,
+                                0,
+                                encrypted_data_cbc_,
+                                sizeof(encrypted_data_cbc_),
+                                &cbResult,
+                                BCRYPT_BLOCK_PADDING),
                   0);
         ASSERT_EQ(sizeof(encrypted_data_cbc_), cbResult);
         ASSERT_NE(memcmp(encrypted_data_ecb_, encrypted_data_cbc_, sizeof(encrypted_data_cbc_)), 0);
         _p = std::make_unique<uint8_t[]>(sizeof(encrypted_data_cbc_));
-        ASSERT_GE(BCryptDecrypt(h_key_, (PUCHAR)encrypted_data_cbc_, sizeof(encrypted_data_cbc_), NULL, NULL, 0, (PUCHAR)_p.get(),
-                                sizeof(encrypted_data_cbc_), &cbResult, BCRYPT_BLOCK_PADDING),
+        ASSERT_GE(BCryptDecrypt(h_key_,
+                                (PUCHAR)encrypted_data_cbc_,
+                                sizeof(encrypted_data_cbc_),
+                                NULL,
+                                NULL,
+                                0,
+                                (PUCHAR)_p.get(),
+                                sizeof(encrypted_data_cbc_),
+                                &cbResult,
+                                BCRYPT_BLOCK_PADDING),
                   0);
         ASSERT_EQ(sizeof(random_plain_data_), cbResult);
         ASSERT_EQ(memcmp(random_plain_data_, _p.get(), sizeof(random_plain_data_)), 0);
@@ -231,6 +265,43 @@ TEST_F(AESFuncitoalityTest, AES256AllIn1) {
         FAIL() << e.what();
     }
     BCryptDestroyKey(h_key);
+}
+
+TEST_F(AESFuncitoalityTest, Encryption) {
+#if 0 // NOTE: for debugging
+    auto buffer = std::make_unique<uint8_t[]>(36);
+    auto &_plain_data = *reinterpret_cast<uint8_t(*)[36]>((uint8_t *)(buffer.get()));
+    memcpy(buffer.get(), "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890", 36);
+#endif
+    auto &_plain_data = random_plain_data_;
+    std::vector<uint8_t> enc_ecb(aligned(sizeof(random_plain_data_)));
+    std::vector<uint8_t> enc_cbc(enc_ecb.size());
+    std::vector<uint8_t> dec_ecb(enc_ecb.size());
+    std::vector<uint8_t> dec_cbc(enc_ecb.size());
+
+    try {
+        auto context1 = make_AES_context_with_key(random_plain_key_);
+        auto context2 = make_AES_context_with_key(random_plain_key_);
+        auto context3 = make_AES_context_with_key(random_plain_key_);
+        auto context4 = make_AES_context_with_key(random_plain_key_);
+        ASSERT_TRUE(context1.set_chain_mode(aes_chain_mode::ECB)
+                        .set_output(enc_ecb)
+                        .set_input(_plain_data, sizeof(_plain_data))
+                        .encrypt_all()
+                        .is_done());
+        ASSERT_TRUE(context2.set_chain_mode(aes_chain_mode::CBC)
+                        .set_output(enc_cbc)
+                        .set_input(_plain_data, sizeof(_plain_data))
+                        .encrypt_all()
+                        .is_done());
+        ASSERT_TRUE(context3.set_chain_mode(aes_chain_mode::CBC).set_input(enc_cbc).set_output(dec_cbc).decrypt_all().is_done());
+        ASSERT_TRUE(context4.set_chain_mode(aes_chain_mode::ECB).set_input(enc_ecb).set_output(dec_ecb).decrypt_all().is_done());
+        ASSERT_EQ(0, memcmp(_plain_data, dec_cbc.data(), sizeof(_plain_data)));
+        ASSERT_EQ(0, memcmp(_plain_data, dec_ecb.data(), sizeof(_plain_data)));
+
+    } catch (const fb2k_ncm::cipher::cipher_error &e) {
+        FAIL() << e.what();
+    }
 }
 
 TEST_F(AESFuncitoalityTest, Falses) {

@@ -6,12 +6,12 @@ on:
 
   pull_request:
     branches: ['main']
-  
+
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
 jobs:
-  test:
+  test-windows:
     name: Test (Windows)
     runs-on: windows-latest
     strategy:
@@ -45,18 +45,53 @@ jobs:
 
       - name: Run Tests (x86)
         working-directory: ${{ github.workspace }}/${{ matrix.config }}
-        run: .\foo_input_ncm_tests.exe
+        run: .\foo_input_ncm_tests.exe --gtest_repeat=10 --gtest_shuffle
         if: matrix.arch == 'x86'
 
       - name: Run Tests (x64)
         working-directory: ${{ github.workspace }}/${{ matrix.arch }}/${{ matrix.config }}
-        run: .\foo_input_ncm_tests.exe
+        run: .\foo_input_ncm_tests.exe --gtest_repeat=10 --gtest_shuffle
         if: matrix.arch == 'x64'
+
+  test-macos:
+    name: Test (macOS)
+    runs-on: macos-14
+    strategy:
+      fail-fast: false
+      matrix:
+        config: [Release, Debug]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Download Foobar2000 SDK
+        run: |
+          curl -L https://www.foobar2000.org/files/SDK-2023-09-23.7z -o vendor/foobar2000_sdk.7z
+          7z x vendor/foobar2000_sdk.7z -ovendor/sdk
+          ls vendor/sdk
+
+      - name: Setup GoogleTest Xcode Project
+        working-directory: ${{ github.workspace }}/vendor/googletest
+        run: |
+          mkdir build
+          cd build && cmake -G Xcode cmake -DCMAKE_BUILD_TYPE=${{ matrix.config }} ..
+
+      - name: Build Tests
+        working-directory: ${{ github.workspace }}
+        run: |
+          xcodebuild clean build -workspace foo_input_ncm.xcworkspace -scheme foo_input_ncm_tests -configuration ${{ matrix.config }} -derivedDataPath .
+
+      - name: Run Tests
+        working-directory: ${{ github.workspace }}/Build/Products/${{ matrix.config }}
+        run: |
+          ./foo_input_ncm_tests --gtest_repeat=10 --gtest_shuffle
 
   matrix-build:
     name: Matrix Build
     runs-on: ${{ matrix.os }}
-    needs: [test]
+    needs: [test-windows, test-macos]
     strategy:
       fail-fast: false
       matrix:
@@ -85,8 +120,9 @@ jobs:
 
       - name: Versioning
         run: |
-          TAG=$(git describe --tags)
-          VERSION=${TAG:1}
+          TAG=$(git describe --long --all)
+          VERSION=${TAG:6} 
+          echo "" >> src/stdafx.h
           echo "#define CURRENT_VERSION $VERSION" >> src/stdafx.h
           echo "----------------------------"
           cat src/stdafx.h
@@ -115,7 +151,7 @@ jobs:
         env:
           scheme: foo_input_ncm-${{ matrix.config }}
         run: |
-          xcodebuild clean build -workspace ${{ matrix.workspace }} -scheme "$scheme" -configuration ${{ matrix.config }}
+          xcodebuild clean build -workspace ${{ matrix.workspace }} -scheme "$scheme" -configuration ${{ matrix.config }} -sdk macosx -mmacosx-version-min=13.3
         if: matrix.os == 'macos-14'
 
       - name: (MSBuild) Setup MSBuild

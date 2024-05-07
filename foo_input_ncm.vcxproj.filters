@@ -24,7 +24,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\album_art_extractor.hpp">
+    <ClInclude Include="src\album_art.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\input_ncm.hpp">
@@ -69,9 +69,15 @@
     <ClInclude Include="src\ui\context_menu.hpp">
       <Filter>Header Files\ui</Filter>
     </ClInclude>
+    <ClInclude Include="src\common\log.hpp">
+      <Filter>Header Files\common</Filter>
+    </ClInclude>
+    <ClInclude Include="src\meta_process.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\album_art_extractor.cpp">
+    <ClCompile Include="src\album_art.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\input_ncm.cpp">
@@ -97,6 +103,9 @@
     </ClCompile>
     <ClCompile Include="src\ui\context_menu.cpp">
       <Filter>Source Files\ui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\meta_process.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

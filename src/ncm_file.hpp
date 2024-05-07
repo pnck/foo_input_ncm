@@ -1,14 +1,18 @@
 #pragma once
 
 #include "stdafx.h"
+#include "common/consts.hpp"
 #include "cipher/cipher.h"
-#include "rapidjson/include/rapidjson/document.h"
+#include "nlohmann/json.hpp"
 
 #include <fstream>
 #include <string_view>
+#include <stdexcept>
 
 namespace fb2k_ncm
 {
+    using json_t = nlohmann::json;
+
     /// @note
     /// - FB2K_MAKE_SERVICE_INTERFACE() is used for creating service interfaces,
     /// which usually contain only pure virtual function declarations.
@@ -22,18 +26,23 @@ namespace fb2k_ncm
     class ncm_file : public file {
         FB2K_MAKE_SERVICE_INTERFACE(ncm_file, file);
 
-    public:
-        enum parse_contents {
-            NCM_PARSE_META = 0b1,
-            NCM_PARSE_ALBUM = 0b10,
-            NCM_PARSE_AUDIO = 0b100,
-        };
-
         struct ncm_file_parsed_st : public ncm_file_st {
             // ...
             // end of original file structure
+
+            // offsets inside the file - pointers are actually not used
+            // offsets are always parsed no matter what target is specified
+            uint64_t rc4_seed_offset;
+            uint64_t meta_offset;
             uint64_t album_image_offset;
             uint64_t audio_content_offset;
+        };
+
+    public:
+        enum parse_targets : uint16_t {
+            NCM_PARSE_META = 0b1,
+            NCM_PARSE_ALBUM = 0b10,
+            NCM_PARSE_AUDIO = 0b100,
         };
 
     public:
@@ -50,37 +59,38 @@ namespace fb2k_ncm
         t_filetimestamp get_timestamp(abort_callback &p_abort);
 
     public:
-        explicit ncm_file(const char *path) : this_path_(path) {
-            filesystem::g_open(source_, path, filesystem::open_mode_read, fb2k::noAbort);
+        explicit ncm_file(const char *path, filesystem::t_open_mode open_mode = filesystem::open_mode_read) : this_path_(path) {
+            filesystem::g_open(source_, path, open_mode, fb2k::noAbort);
         }
-        void ensure_audio_offset();
         void parse(uint16_t to_parse = 0xffff);
         bool save_raw_audio(const char *to_dir, abort_callback &p_abort = fb2k::noAbort);
+        void overwrite_meta(const nlohmann::json &overwrite, abort_callback &p_abort = fb2k::noAbort);
+        void reset_album_image(album_art_data_ptr image, abort_callback &p_abort = fb2k::noAbort);
 
     private:
         inline void throw_format_error(const char *extra = nullptr);
-        inline void throw_format_error(std::string extra);
-        auto make_seek_guard(abort_callback &p_abort);
+        inline void throw_format_error(const std::string &extra);
+        inline void ensure_audio_offset();
+        inline void ensure_decryptor();
+        [[nodiscard]] auto make_seek_guard(abort_callback &p_abort = fb2k::noAbort);
 
     public:
         inline auto &meta_info() { return meta_json_; }
-        inline auto &image_data() { return image_data_; }
+        inline auto &image_data() { return album_image_data_; }
         inline auto path() const { return this_path_; }
-        inline bool meta_parsed() const { return !meta_str_.empty(); }
-        inline bool audio_parsed() const { return !parsed_file_.audio_content_offset; }
+        inline bool meta_parsed() const { return meta_str_.size() > 0; }
+        inline bool audio_key_parsed() const { return rc4_decryptor_.is_valid(); }
+        inline bool album_image_parsed() const { return album_image_data_.capacity() > 0; }
         inline std::string_view saved_raw_path() const { return path_raw_saved_to_; }
 
     private:
         const char *this_path_ = nullptr;
         ncm_file_parsed_st parsed_file_{};
         file_ptr source_;
-        // std::unique_ptr<std::basic_fstream<char>> source_;
-        // using fschar = decltype(source_)::element_type::char_type;
-
         std::string meta_str_;
-        rapidjson::Document meta_json_;
-        cipher::abnormal_RC4 rc4_decrypter_;
-        std::vector<uint8_t> image_data_;
+        nlohmann::json meta_json_;
+        cipher::abnormal_RC4 rc4_decryptor_;
+        std::vector<uint8_t> album_image_data_;
         std::string path_raw_saved_to_;
     };
 

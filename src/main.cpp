@@ -4,6 +4,11 @@
 
   Change Log
 
+  Version 0.5.0
+  - Support of ReplayGain and retagging
+    - Tags in the audio content and the embedded JSON metainfo are left untouched. 
+      Retagging works on top of them by introduce new overwrite fields.
+
   Version 0.4.1
   - Concurrency support for batch conversion
   - Add progress UI for batch conversion
@@ -33,7 +38,7 @@
 
  */
 
-#define FALLBACK_VERSION "0.4.0"
+#define FALLBACK_VERSION "0.5.0"
 
 #ifdef CURRENT_VERSION
 #define VER_STR(X) #X
@@ -43,8 +48,7 @@
 #define NCM_LOADER_VERSION FALLBACK_VERSION
 #endif
 
-constexpr auto About = "Load and play Netease Cloud Music specific format (.ncm) files.\n"
-                       "https://github.com/pnck/foo_input_ncm\n";
+constexpr auto About = "Load and play Netease Cloud Music specific format (.ncm) files.\n" PROJECT_HOST_REPO "\n";
 
 DECLARE_COMPONENT_VERSION("Ncm Loader", NCM_LOADER_VERSION, About);
 

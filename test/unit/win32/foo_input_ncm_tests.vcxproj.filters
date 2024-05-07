@@ -8,6 +8,9 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h" />
+    <ClInclude Include="..\..\..\src\cipher\aes.hpp" />
+    <ClInclude Include="..\..\..\src\cipher\aes_common.hpp" />
+    <ClInclude Include="..\..\..\src\cipher\aes_win32.hpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

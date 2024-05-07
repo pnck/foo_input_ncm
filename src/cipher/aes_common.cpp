@@ -46,9 +46,9 @@ size_t AES_context_common::outputted_len() const {
         return finished_outputted_;
     }
     if (std::holds_alternative<uint8_t *>(output_buffer_)) {
-        return output_head_ - std::get<uint8_t *>(output_buffer_);
+        return std::distance(std::get<uint8_t *>(output_buffer_), output_head_);
     } else {
-        return output_head_ - std::get<std::vector<uint8_t> *>(output_buffer_)->data();
+        return std::distance(std::get<std::vector<uint8_t> *>(output_buffer_)->data(), output_head_);
     }
 }
 size_t AES_context_common::output_remain() const {
@@ -88,6 +88,13 @@ void AES_context_common::set_chain_mode(aes_chain_mode mode) {
     chain_mode_ = mode;
 }
 
+void AES_context_common::decrypt_next() {
+    if (!in_progress_ || is_done_) {
+        throw cipher_error("Can't repeat decryption", status_);
+    }
+    return decrypt_chunk(last_chunk_size_);
+}
+
 void AES_context_common::decrypt_all() {
     if (is_done_) {
         throw cipher_error("Context finished", status_);
@@ -95,42 +102,65 @@ void AES_context_common::decrypt_all() {
     if (!in_progress_) {
         do_prepare();
     }
-    return decrypt_chunk(input_remain());
+    do {
+        decrypt_chunk(input_remain());
+    } while (input_remain());
 }
 
-void AES_context_common::decrypt_chunk(size_t chunk_size) {
+void AES_context_common::encrypt_next() {
+    if (!in_progress_ || is_done_) {
+        throw cipher_error("Can't repeat encryption", status_);
+    }
+    return encrypt_chunk(last_chunk_size_);
+}
+
+void AES_context_common::encrypt_all() {
     if (is_done_) {
         throw cipher_error("Context finished", status_);
     }
     if (!in_progress_) {
         do_prepare();
     }
-    size_t original_output_buffer_size = output_buffer_size_;
+    do {
+        encrypt_chunk(input_remain());
+    } while (input_remain());
+}
+
+template <AES_context_common::OP op>
+void AES_context_common::universal_chunk_op(size_t chunk_size) {
+    if (is_done_) {
+        throw cipher_error("Context finished", status_);
+    }
+    if (!in_progress_) {
+        do_prepare();
+        in_progress_ = true;
+    }
+    size_t stashed_output_buffer_size = output_buffer_size_;
     if (std::holds_alternative<std::vector<uint8_t> *>(output_buffer_)) {
         auto p = std::get<std::vector<uint8_t> *>(output_buffer_);
-        auto head_off = output_head_ - p->data();
-        p->resize(p->size() + aligned(chunk_size));
+        auto output_head_n = std::distance(p->data(), output_head_);
+        p->resize(outputted_len() + aligned(chunk_size));
         output_buffer_size_ = p->size();
         // resize vector may realloc the space, thus record the offset of output head and reset head from it
-        output_head_ = p->data() + head_off;
+        output_head_ = p->data() + output_head_n;
     }
     if (auto remain = input_remain(); chunk_size > remain) {
         chunk_size = remain;
     }
     size_t result_size = 0;
-    switch (chain_mode_) {
-    case aes_chain_mode::CBC:
-        result_size = do_decrypt(aes_chain_mode::CBC, output_head_, output_remain(), input_head_, chunk_size);
+    switch (op) {
+    case OP::DEC:
+        result_size = do_decrypt(chain_mode_, output_head_, output_remain(), input_head_, chunk_size);
         break;
-    case aes_chain_mode::ECB:
-        result_size = do_decrypt(aes_chain_mode::ECB, output_head_, output_remain(), input_head_, chunk_size);
+    case OP::ENC:
+        result_size = do_encrypt(chain_mode_, output_head_, output_remain(), input_head_, chunk_size);
         break;
     }
     last_chunk_size_ = result_size;
     if (std::holds_alternative<std::vector<uint8_t> *>(output_buffer_)) {
         // shrink output vector to exact size
         auto p = std::get<std::vector<uint8_t> *>(output_buffer_);
-        p->resize(original_output_buffer_size + result_size);
+        p->resize(stashed_output_buffer_size + result_size);
         output_buffer_size_ = p->size();
     }
     input_head_ += chunk_size;
@@ -140,11 +170,12 @@ void AES_context_common::decrypt_chunk(size_t chunk_size) {
     }
 }
 
-void AES_context_common::decrypt_next() {
-    if (!in_progress_ || is_done_) {
-        throw cipher_error("Can't repeat decryption", status_);
-    }
-    return decrypt_chunk(last_chunk_size_);
+void AES_context_common::decrypt_chunk(size_t chunk_size) {
+    universal_chunk_op<OP::DEC>(chunk_size);
+}
+
+void AES_context_common::encrypt_chunk(size_t chunk_size) {
+    universal_chunk_op<OP::ENC>(chunk_size);
 }
 
 void AES_context_common::finish() {
@@ -154,7 +185,7 @@ void AES_context_common::finish() {
     is_done_ = true;
     in_progress_ = false;
 
-    input_buffer_ = (const uint8_t *)nullptr;
+    input_buffer_ = static_cast<const uint8_t *>(nullptr);
     input_head_ = nullptr;
     input_buffer_size_ = 0;
 

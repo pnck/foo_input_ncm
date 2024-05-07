@@ -1,5 +1,7 @@
 #include "stdafx.h"
 #include "input_ncm.hpp"
+#include "common/log.hpp"
+#include "meta_process.hpp"
 
 #include <string>
 #include <sstream>
@@ -25,13 +27,71 @@ inline bool fb2k_ncm::input_ncm::g_is_our_content_type(const char *p_content_typ
     return stricmp_utf8_max(p_content_type, mime.data(), mime.size()) == 0;
 }
 
-inline void fb2k_ncm::input_ncm::retag(const file_info &p_info, abort_callback &p_abort) {
-    // TODO: support of retagging on audio content (with ncm wrapper and meta info not touched)
-    throw exception_tagging_unsupported();
+/// @note
+/// - ReplayGain info and meta tags are stored in different places.
+/// The former is stored in the audio content, while the latter is stored in the ncm header.
+/// @note
+/// - See also: `ncm_file::overwrite_meta()`
+void fb2k_ncm::input_ncm::retag(const file_info &p_info, abort_callback &p_abort) {
+    DEBUG_LOG("input_ncm::retag()");
+    // Replay Gain
+    file_info_impl cur_file_info;
+    source_info_writer_->get_info(0, cur_file_info, p_abort);
+    cur_file_info.set_replaygain(p_info.get_replaygain());
+    source_info_writer_->set_info(0, cur_file_info, p_abort);
+    source_info_writer_->commit(p_abort);
+
+    // Meta tags
+    // NOTE: Always do differential update, to maximally avoid appending "overwrite" key,
+    // which will change the "163 key xxxx" content.
+    auto target_json = meta_processor(p_info).dump();
+    if (target_json.empty()) { // fallback case: clear all fields
+        return this->remove_tags(p_abort);
+    }
+    this->get_info(cur_file_info, p_abort);
+    auto current_json = meta_processor(cur_file_info).dump();
+
+    auto overwrite = json_t::object();
+
+    if (ncm_file_->meta_info().contains(overwrite_key)) {
+        // overwrite is guaranteed to be suitable with current_meta
+        // because this->get_info() will call parse() and reset meta_info()
+        overwrite = ncm_file_->meta_info()[overwrite_key];
+    }
+
+    auto diff = json_t::diff(current_json, target_json);
+    auto to_merge = json_t::object();
+    for (const auto &op : diff) {
+        json_t::json_pointer pt(op["path"]);
+        for (; !pt.parent_pointer().empty(); pt = pt.parent_pointer()) {
+            continue;
+        }
+        if (op["op"] == "remove") {
+            if (!overwrite.contains(pt.back())) {
+                overwrite.emplace(pt.back(), nullptr);
+            } else {
+                overwrite[pt.back()] = nullptr;
+            }
+        } else {
+            if (overwrite.contains(pt.back())) {
+                overwrite.erase(pt.back());
+            }
+            overwrite.emplace(pt.back(), target_json.at(pt)); // copy the top level
+        }
+    }
+
+    overwrite.merge_patch(to_merge);
+
+    ncm_file_->overwrite_meta(overwrite, p_abort);
 }
 
-inline void fb2k_ncm::input_ncm::remove_tags(abort_callback &p_abort) {
-    throw exception_tagging_unsupported();
+/// @brief "Clear tags" => restore the meta field (163 key) to its original state
+/// @attention ReplayGain and embedded tags in the audio content are left untouched.
+/// @note ReplayGain can be wiped by retagging, since the meta diff would be empty then.
+void fb2k_ncm::input_ncm::remove_tags(abort_callback &p_abort) {
+    DEBUG_LOG("input_ncm::remove_tags()");
+    // source_info_writer_->remove_tags_fallback(p_abort);
+    ncm_file_->overwrite_meta(nlohmann::json(), p_abort);
 }
 
 inline bool fb2k_ncm::input_ncm::decode_can_seek() {
@@ -39,35 +99,40 @@ inline bool fb2k_ncm::input_ncm::decode_can_seek() {
 }
 
 void input_ncm::open(foobar2000_io::file::ptr p_filehint, const char *p_path, t_input_open_reason p_reason, abort_callback &p_abort) {
-    if (p_reason == t_input_open_reason::input_open_info_write) {
-        FB2K_console_print("[ERR] Modification on a ncm file is not supported.");
-        throw exception_io_unsupported_format();
-    }
-    if (ncm_file_.is_empty()) {
-        if (std::string checked_path(p_path); checked_path.length()) { // open from filesystem
-            DEBUG_LOG("[DEBUG] input_ncm::open (", p_path, ") for reason ", p_reason);
+
+    if (std::string checked_path(p_path); checked_path.length()) { // available from filesystem
+        DEBUG_LOG_F("input_ncm::open() for {} => {}", p_reason, p_path);
+        switch (p_reason) {
+        case t_input_open_reason::input_open_decode:
+            [[fallthrough]];
+        case t_input_open_reason::input_open_info_read:
             ncm_file_ = fb2k::service_new<ncm_file>(p_path);
-            if (!ncm_file_.is_valid()) {
-                FB2K_console_print("[ERR] Failed to open file: ", p_path);
-                throw exception_io_not_found();
-            }
-        } else if (p_filehint.is_valid()) { // attach an opened ncm_file
-            if (p_filehint->cast(ncm_file_)) {
-                DEBUG_LOG("[DEBUG] input_ncm::open (", ncm_file_->path(), ") for reason ", p_reason, " (from file hint)");
-            } else {
-                DEBUG_LOG("[DEBUG] input_ncm::open cast from file_ptr failed, reason=", p_reason);
-                throw exception_io_unsupported_feature();
-            }
-        } else {
-            FB2K_console_print("[ERR] Open ncm file failed (invalid file hint).");
-            throw exception_io_no_handler_for_path();
+            break;
+        case t_input_open_reason::input_open_info_write:
+            ncm_file_ = fb2k::service_new<ncm_file>(p_path, filesystem::open_mode_write_existing);
+            break;
+        default:
+            throw exception_io_unsupported_feature();
         }
+        if (ncm_file_.is_empty()) [[unlikely]] {
+            uBugCheck();
+        }
+    } else if (p_filehint.is_valid()) { // attach an opened ncm_file
+        if (p_filehint->cast(ncm_file_)) {
+            DEBUG_LOG("input_ncm::open (", ncm_file_->path(), ") for reason ", p_reason, " (from file hint)");
+        } else {
+            DEBUG_LOG("input_ncm::open cast from file_ptr failed, reason=", p_reason);
+            throw exception_io_unsupported_feature();
+        }
+    } else {
+        ERROR_LOG("Open ncm file failed (invalid file hint).");
+        throw exception_io_no_handler_for_path();
     }
 
     // walk through the file structure
     // parse() won't decrypt the whole file, so we can always parse metadata and audio info at the same time.
-    if (!(ncm_file_->meta_parsed() && ncm_file_->audio_parsed())) {
-        ncm_file_->parse(ncm_file::parse_contents::NCM_PARSE_META | ncm_file::parse_contents::NCM_PARSE_AUDIO);
+    if (!(ncm_file_->meta_parsed() && ncm_file_->audio_key_parsed())) {
+        ncm_file_->parse(ncm_file::parse_targets::NCM_PARSE_META | ncm_file::parse_targets::NCM_PARSE_AUDIO);
     }
 
     // find any available decoders by the following steps:
@@ -77,7 +142,7 @@ void input_ncm::open(foobar2000_io::file::ptr p_filehint, const char *p_path, t_
     service_list_t<input_entry> input_services;
     do {
         // there is format hint, so we don't have to find_input twice or more
-        if (ncm_file_->meta_info().IsObject() && ncm_file_->meta_info().HasMember("format")) {
+        if (ncm_file_->meta_info().is_object() && ncm_file_->meta_info().contains("format")) {
             if (ncm_file_->meta_info()["format"] == "flac") {
                 input_entry::g_find_inputs_by_content_type(input_services, "audio/flac", true);
                 break;
@@ -85,7 +150,7 @@ void input_ncm::open(foobar2000_io::file::ptr p_filehint, const char *p_path, t_
                 input_entry::g_find_inputs_by_content_type(input_services, "audio/mpeg", true);
                 break;
             } else {
-                FB2K_console_print("[ERR] Unknown ncm format hint: ", ncm_file_->meta_info()["format"].GetString());
+                ERROR_LOG("Unknown ncm format hint: ", ncm_file_->meta_info()["format"].get_ref<const nlohmann::json::string_t &>());
                 throw exception_io_unsupported_format();
             }
         }
@@ -97,7 +162,7 @@ void input_ncm::open(foobar2000_io::file::ptr p_filehint, const char *p_path, t_
         input_services.add_items(flac_decoders);
     } while (false);
 
-    service_ptr_t<input_entry_v3> input_ptr;
+    service_ptr_t<input_entry_v2> input_ptr;
     // see if found input matches the codec
     for (size_t i = 0; i < input_services.get_count(); ++i) {
         input_services[i]->cast(input_ptr);
@@ -106,12 +171,13 @@ void input_ncm::open(foobar2000_io::file::ptr p_filehint, const char *p_path, t_
                 input_ptr->open_for_decoding(decoder_, ncm_file_, /*file_path_*/ "", p_abort);
                 if (decoder_.is_valid()) {
                     // decoder_->initialize(0, p_flags, p_abort);
-                    DEBUG_LOG("[DEBUG] Found decoder [", input_ptr->get_name(), "] for ", ncm_file_->path());
+                    DEBUG_LOG("Found decoder [", input_ptr->get_name(), "] for ", ncm_file_->path());
+                    input_ = input_ptr;
                     break;
                 }
             }
         } catch (const pfc::exception &e) {
-            DEBUG_LOG("[DEBUG] (by MIME) Give up ", input_ptr->get_name_(), "; reason=", e.what());
+            DEBUG_LOG("(by MIME) Give up ", input_ptr->get_name_(), "; reason=", e.what());
         }
     }
     if (decoder_.is_empty()) {
@@ -122,33 +188,43 @@ void input_ncm::open(foobar2000_io::file::ptr p_filehint, const char *p_path, t_
                 if (input_ptr.is_empty()) {
                     continue;
                 }
+                if (input_ptr->get_guid_() == class_guid) { // self
+                    continue;
+                }
                 input_ptr->open_for_decoding(decoder_, ncm_file_, /*file_path_*/ "", p_abort);
                 if (decoder_.is_valid()) {
                     // decoder_->initialize(0, p_flags, p_abort);
-                    DEBUG_LOG("[DEBUG] Found decoder [", input_ptr->get_name(), "] for ", ncm_file_->path());
+                    DEBUG_LOG("Found decoder [", input_ptr->get_name(), "] for ", ncm_file_->path());
+                    input_ = input_ptr;
                     break;
                 }
 
             } catch (const pfc::exception &e) {
-                DEBUG_LOG("[DEBUG] (by enumerate) Give up ", input_ptr->get_name_(), "; reason=", e.what());
+                DEBUG_LOG("(by enumerate) Give up ", input_ptr->get_name_(), "; reason=", e.what());
             }
         }
     }
 
     if (decoder_.is_empty()) {
-        FB2K_console_print("[ERR] Failed to find proper audio decoder.");
+        ERROR_LOG("Failed to find proper audio decoder.");
         throw exception_service_not_found();
     }
 
-    if (p_reason == t_input_open_reason::input_open_info_read) {
+#if 0 // maybe misused
+    if (p_reason == t_input_open_reason::input_open_info_read || p_reason == t_input_open_reason::input_open_info_write) {
         input_ptr->open_for_info_read(source_info_reader_, ncm_file_, /*p_path*/ "", p_abort);
+    }
+#endif
+    if (p_reason == t_input_open_reason::input_open_info_write) {
+        DEBUG_LOG("Attempt to write to ncm file.");
+        input_->open_for_info_write(source_info_writer_, ncm_file_, /*p_path*/ "", p_abort);
     }
 }
 
 void input_ncm::decode_seek(double p_seconds, abort_callback &p_abort) {
     // seek position is masqueraded by ncm_file
     decoder_->seek(p_seconds, p_abort);
-    DEBUG_LOG("[DEBUG] decode_seek() : ", p_seconds, " sec");
+    DEBUG_LOG("decode_seek() : ", p_seconds, " sec");
 }
 
 bool input_ncm::decode_run(audio_chunk &p_chunk, abort_callback &p_abort) {
@@ -157,13 +233,11 @@ bool input_ncm::decode_run(audio_chunk &p_chunk, abort_callback &p_abort) {
 
 void input_ncm::decode_initialize(unsigned p_flags, abort_callback &p_abort) {
     // initialize should always follow open
-    ncm_file_->ensure_audio_offset();
     decoder_->initialize(/*no subsong*/ 0, p_flags, p_abort);
-    DEBUG_LOG("[DEBUG] decode_initialize() called");
+    DEBUG_LOG("decode_initialize() called");
 }
 
 t_filestats input_ncm::get_file_stats(abort_callback &p_abort) {
-    // return real file stats, which would be displayed on Properties/Location
     return ncm_file_->get_stats(p_abort);
 }
 
@@ -172,69 +246,26 @@ t_filestats2 fb2k_ncm::input_ncm::get_stats2(uint32_t f, abort_callback &a) {
 }
 
 void input_ncm::get_info(file_info &p_info, abort_callback &p_abort) {
-    if (ncm_file_.is_empty() || ncm_file_->meta_info().IsNull()) {
+    DEBUG_LOG("input_ncm::get_info()");
+    if (ncm_file_.is_empty()) {
         return;
     }
 
-    if (source_info_reader_.is_valid()) {
-        source_info_reader_->get_info(/*sub song*/ 0, p_info, p_abort);
+    // refresh meta info after retagging
+    ncm_file_->parse(ncm_file::parse_targets::NCM_PARSE_META);
+
+    input_info_reader::ptr reader;
+    if (source_info_writer_.is_valid()) { // if just retagged, use the recent file_info
+        reader = source_info_writer_;
+    } else if (decoder_.is_valid()) {
+        reader = decoder_;
     }
 
-    // p_info.set_length(meta()["duration"].GetInt() / 1000.0);
-    // p_info.info_set_bitrate(meta()["bitrate"].GetUint64() / 1000);
-    if (ncm_file_->meta_info().HasMember("artist")) {
-        std::unordered_set<std::string> artists; // remove redundant (from tags within audio content)
-        if (auto count = p_info.meta_get_count_by_name("Artist"); count > 0) {
-            auto index = p_info.meta_find("Artist");
-            for (size_t i = 0; i < count; ++i) {
-                artists.insert(p_info.meta_enum_value(index, i));
-            }
-        }
-        for (auto &v : ncm_file_->meta_info()["artist"].GetArray()) {
-            artists.insert(v[0].GetString());
-        }
-        p_info.meta_remove_field("Artist");
-        for (auto &v : artists) {
-            p_info.meta_add("Artist", v.c_str());
-        }
-    }
-    if (ncm_file_->meta_info().HasMember("date")) {
-        p_info.meta_set("Date", ncm_file_->meta_info()["date"].GetString());
-    }
-    if (ncm_file_->meta_info().HasMember("album")) {
-        p_info.meta_set("Album", ncm_file_->meta_info()["album"].GetString());
-    }
-    if (ncm_file_->meta_info().HasMember("musicName")) {
-        p_info.meta_set("Title", ncm_file_->meta_info()["musicName"].GetString());
-    }
-    if (ncm_file_->meta_info().HasMember("musicId")) {
-        p_info.info_set("Music ID", PFC_string_formatter() << ncm_file_->meta_info()["musicId"].GetUint64());
-    }
-    if (ncm_file_->meta_info().HasMember("albumId")) {
-        p_info.info_set("Album ID", PFC_string_formatter() << ncm_file_->meta_info()["albumId"].GetUint64());
-    }
-    if (ncm_file_->meta_info().HasMember("albumPic")) {
-        p_info.info_set("Album Artwork", ncm_file_->meta_info()["albumPic"].GetString());
-    }
-    if (ncm_file_->meta_info().HasMember("alias")) {
-        std::stringstream comment;
-        bool first = true;
-        for (auto &v : ncm_file_->meta_info()["alias"].GetArray()) {
-            p_info.meta_add("Alias", v.GetString());
-            if (!first) {
-                comment << " | ";
-            }
-            comment << v.GetString();
-            first = false;
-        }
-        p_info.meta_remove_field("Comment");
-        p_info.meta_set("Comment", comment.str().c_str());
-    }
-    if (ncm_file_->meta_info().HasMember("transNames")) {
-        for (auto &v : ncm_file_->meta_info()["transNames"].GetArray()) {
-            p_info.meta_add("Translated Title", v.GetString());
-        }
-    }
+    reader->get_info(/*sub song*/ 0, p_info, p_abort);
+
+    auto mp = meta_processor(p_info);
+    mp.update(ncm_file_->meta_info());
+    mp.apply(p_info);
 }
 
 static input_singletrack_factory_t<input_ncm> g_input_ncm_factory;

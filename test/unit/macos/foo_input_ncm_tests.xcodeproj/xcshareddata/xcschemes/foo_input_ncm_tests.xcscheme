@@ -4,21 +4,20 @@
    version = "1.7">
    <BuildAction
       parallelizeBuildables = "YES"
-      buildImplicitDependencies = "YES"
-      buildArchitectures = "All">
+      buildImplicitDependencies = "YES">
       <BuildActionEntries>
          <BuildActionEntry
             buildForTesting = "YES"
             buildForRunning = "YES"
-            buildForProfiling = "NO"
+            buildForProfiling = "YES"
             buildForArchiving = "NO"
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "A3B7380B2BCCBC6700DF7424"
-               BuildableName = "foo_input_ncm.component"
-               BlueprintName = "foo_input_ncm"
-               ReferencedContainer = "container:foo_input_ncm.xcodeproj">
+               BlueprintIdentifier = "A35F94802BE17DF500ABAABA"
+               BuildableName = "foo_input_ncm_tests"
+               BlueprintName = "foo_input_ncm_tests"
+               ReferencedContainer = "container:foo_input_ncm_tests.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -35,14 +34,23 @@
       selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
       selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
       enableUBSanitizer = "YES"
-      language = "en"
-      region = "US"
       launchStyle = "0"
       useCustomWorkingDirectory = "NO"
       ignoresPersistentStateOnLaunch = "NO"
       debugDocumentVersioning = "YES"
       debugServiceExtension = "internal"
-      allowLocationSimulation = "YES">
+      allowLocationSimulation = "YES"
+      viewDebuggingEnabled = "No">
+      <BuildableProductRunnable
+         runnableDebuggingMode = "0">
+         <BuildableReference
+            BuildableIdentifier = "primary"
+            BlueprintIdentifier = "A35F94802BE17DF500ABAABA"
+            BuildableName = "foo_input_ncm_tests"
+            BlueprintName = "foo_input_ncm_tests"
+            ReferencedContainer = "container:foo_input_ncm_tests.xcodeproj">
+         </BuildableReference>
+      </BuildableProductRunnable>
       <AdditionalOptions>
          <AdditionalOption
             key = "DYLD_INSERT_LIBRARIES"
@@ -72,6 +80,16 @@
       savedToolIdentifier = ""
       useCustomWorkingDirectory = "NO"
       debugDocumentVersioning = "YES">
+      <BuildableProductRunnable
+         runnableDebuggingMode = "0">
+         <BuildableReference
+            BuildableIdentifier = "primary"
+            BlueprintIdentifier = "A35F94802BE17DF500ABAABA"
+            BuildableName = "foo_input_ncm_tests"
+            BlueprintName = "foo_input_ncm_tests"
+            ReferencedContainer = "container:foo_input_ncm_tests.xcodeproj">
+         </BuildableReference>
+      </BuildableProductRunnable>
    </ProfileAction>
    <AnalyzeAction
       buildConfiguration = "Debug">

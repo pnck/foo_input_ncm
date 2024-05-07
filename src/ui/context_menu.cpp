@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "context_menu.hpp"
 #include "common/helpers.hpp"
+#include "common/log.hpp"
 #include "input_ncm.hpp"
 
 #include <numeric>
@@ -51,7 +52,7 @@ namespace fb2k_ncm::ui
                     std::vector<std::string> succs, fails;
 
                     auto worker = [&](threaded_process_status &p_status, abort_callback &p_abort) {
-                        DEBUG_LOG("[DEBUG] Extraction worker thread started.");
+                        DEBUG_LOG("Extraction worker thread started.");
                         try {
                             for (auto index = exclusive_index++; index < total; index = exclusive_index++) {
                                 p_abort.check();
@@ -83,9 +84,12 @@ namespace fb2k_ncm::ui
                                 p_status.set_title(PFC_string_formatter()
                                                    << "Extracting audio files (" << finished_count << " of " << total << ")");
                             }
-                            DEBUG_LOG("[DEBUG] Extraction worker thread ended normally.");
+                            DEBUG_LOG("Extraction worker thread ended normally.");
                         } catch (const exception_aborted &) {
-                            DEBUG_LOG("[DEBUG] Extraction worker aborted (p_abort)");
+                            DEBUG_LOG("Extraction worker aborted (p_abort)");
+                            all_done = false;
+                        } catch (const std::exception &e) {
+                            ERROR_LOG("Extraction worker failed: ", e.what());
                             all_done = false;
                         }
                     };
@@ -95,7 +99,7 @@ namespace fb2k_ncm::ui
                                               ? fb2k_ncm::max_thread_count
                                               : std::thread::hardware_concurrency();
                     thread_count = thread_count > total ? total : thread_count;
-                    DEBUG_LOG("[DEBUG] Extraction main thread: scheduling ", thread_count, " threads.");
+                    DEBUG_LOG("Extraction main thread: scheduling ", thread_count, " threads.");
 
                     std::vector<std::thread> threads;
                     // slicing is still extreamly complicated! - rather not to imitate the [a:b:c] syntax :(
@@ -105,7 +109,7 @@ namespace fb2k_ncm::ui
                     for (auto &t : threads) {
                         t.join();
                     }
-                    DEBUG_LOG("[DEBUG] Extraction main thread: all workers finished.");
+                    DEBUG_LOG("Extraction main thread: all workers finished.");
                     pfc::string8 msg;
                     if (all_done) {
                         msg << "All audio content have been extracted successfully.\n\n";
@@ -140,10 +144,10 @@ namespace fb2k_ncm::ui
         run_cmd_extract(
             p_data, p_caller,
             [](ncm_file::ptr ncm_file, threaded_process_status &p_status, abort_callback &p_abort) -> std::optional<std::string> {
-                DEBUG_LOG("[DEBUG] Retagging ", ncm_file->saved_raw_path().data());
+                DEBUG_LOG("Retagging ", ncm_file->saved_raw_path().data());
 
                 if (p_abort.is_aborting()) {
-                    DEBUG_LOG("[DEBUG] Retagging aborted (p_abort)");
+                    DEBUG_LOG("Retagging aborted (p_abort)");
                     return {};
                 }
                 // p_status.set_title(PFC_string_formatter() << "Retagging (" << finished_count << " of " << total << ")");
@@ -168,7 +172,7 @@ namespace fb2k_ncm::ui
                 to_retag.add_filename(pfc::string_filename(o_path));
                 to_retag << "." << codec;
                 if (to_retag.empty()) {
-                    DEBUG_LOG("[DEBUG] Not extracted:", ncm_file->path());
+                    DEBUG_LOG("Not extracted:", ncm_file->path());
                     return {};
                 }
 
@@ -183,7 +187,7 @@ namespace fb2k_ncm::ui
                     retagger->commit(fb2k::noAbort); // do not interrupt committing
                     retagger = nullptr;              // release, to let album editor reopen the file
 
-                    // embed album art
+                    // embedded album art
                     auto album_extractor = album_art_extractor::g_open(ncm_file, ncm_file->path(), p_abort);
                     auto album_writer = album_art_editor::g_open(nullptr, to_retag, p_abort);
                     if (album_extractor.is_valid() && album_writer.is_valid()) {
@@ -192,10 +196,10 @@ namespace fb2k_ncm::ui
                             album_writer->commit(fb2k::noAbort); // do not interrupt committing
                         }
                     }
-                    DEBUG_LOG("[DEBUG] Retagged ", to_retag);
+                    DEBUG_LOG("Retagged ", to_retag);
                     return {std::string(to_retag.c_str())};
                 } catch (const pfc::exception &e) {
-                    FB2K_console_print("[ERR] (", e.what(), ") Failed to retag ", to_retag);
+                    ERROR_LOG("(", e.what(), ") Failed to retag ", to_retag);
                 }
                 return {};
             });
@@ -298,5 +302,5 @@ bool context_menu::context_get_display(unsigned p_index, metadb_handle_list_cref
         p_out << " to its original format (keep meta info)...";
         return true;
     }
-    return base::context_get_display(p_index, p_data, p_out, p_displayflags, p_caller);
+    return base_t::context_get_display(p_index, p_data, p_out, p_displayflags, p_caller);
 }

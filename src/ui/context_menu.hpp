@@ -11,7 +11,7 @@
 namespace fb2k_ncm::ui
 {
     class context_menu : public contextmenu_item_simple {
-        using base = contextmenu_item_simple;
+        using base_t = contextmenu_item_simple;
         enum {
             CMD_EXTRACT = 0, // retrieve wrapped content
             CMD_CONVERT,     // retrieve and retag

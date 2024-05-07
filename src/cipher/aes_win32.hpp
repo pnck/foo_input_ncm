@@ -83,7 +83,7 @@ namespace fb2k_ncm::cipher::details
     };
 
     class AES_context_win32 : public AES_context_common {
-        using base = AES_context_common;
+        using base_t = AES_context_common;
         using clazz = AES_context_win32;
 
         template <size_t KEYLEN>
@@ -107,7 +107,12 @@ namespace fb2k_ncm::cipher::details
 
     private:
         void do_finish() override;
+        enum class OP { DEC, ENC };
+        template <OP op>
+        size_t do_crypt_universal(const aes_chain_mode M, uint8_t *dst, const size_t cb_dst, const uint8_t *src, const size_t cb_src);
         size_t do_decrypt(const aes_chain_mode M, uint8_t *dst, const size_t cb_dst, const uint8_t *src, const size_t cb_src) override;
+        size_t do_encrypt(const aes_chain_mode M, uint8_t *dst, const size_t cb_dst, const uint8_t *src, const size_t cb_src) override;
+
         template <size_t KEYLEN>
         auto inline internal_get_key_handle(AES<KEYLEN> &_) noexcept {
             return _.h_key_;
@@ -137,7 +142,7 @@ namespace fb2k_ncm::cipher::details
             if (this == &tmp) {
                 return;
             }
-            base::operator=(std::move(tmp));
+            base_t::operator=(std::move(tmp));
             cipher_ = std::move(tmp.cipher_);
         }
 
@@ -156,7 +161,10 @@ namespace fb2k_ncm::cipher::details
         inline auto &decrypt_all() { CHAINED(decrypt_all); }
         inline auto &decrypt_chunk(size_t chunk_size) { CHAINED(decrypt_chunk, chunk_size); }
         inline auto &decrypt_next() { CHAINED(decrypt_next); }
-        inline void finish() { base::finish(); }
+        inline auto &encrypt_all() { CHAINED(encrypt_all); }
+        inline auto &encrypt_chunk(size_t chunk_size) { CHAINED(encrypt_chunk, chunk_size); }
+        inline auto &encrypt_next() { CHAINED(encrypt_next); }
+        inline void finish() { base_t::finish(); }
 
     private:
         std::variant<AES128, AES192, AES256> cipher_;

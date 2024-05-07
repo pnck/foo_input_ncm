@@ -90,7 +90,7 @@
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <LanguageStandard_C>stdc11</LanguageStandard_C>
-      <AdditionalIncludeDirectories>src; vendor; vendor/sdk</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>src;vendor/spdlog/include;vendor/json/include;vendor/sdk;vendor/sdk/foobar2000</AdditionalIncludeDirectories>
       <AdditionalOptions>/Zc:__cplusplus %(AdditionalOptions)</AdditionalOptions>
       <PrecompiledHeader>Use</PrecompiledHeader>
     </ClCompile>
@@ -116,7 +116,7 @@
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <LanguageStandard_C>stdc11</LanguageStandard_C>
-      <AdditionalIncludeDirectories>src; vendor; vendor/sdk</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>src;vendor/spdlog/include;vendor/json/include;vendor/sdk;vendor/sdk/foobar2000</AdditionalIncludeDirectories>
       <AdditionalOptions>/Zc:__cplusplus %(AdditionalOptions)</AdditionalOptions>
       <PrecompiledHeader>Use</PrecompiledHeader>
     </ClCompile>
@@ -140,7 +140,7 @@
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <LanguageStandard_C>stdc11</LanguageStandard_C>
-      <AdditionalIncludeDirectories>src; vendor; vendor/sdk</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>src;vendor/spdlog/include;vendor/json/include;vendor/sdk;vendor/sdk/foobar2000</AdditionalIncludeDirectories>
       <AdditionalOptions>/Zc:__cplusplus %(AdditionalOptions)</AdditionalOptions>
       <PrecompiledHeader>Use</PrecompiledHeader>
     </ClCompile>
@@ -168,7 +168,7 @@ copy $(TargetPath)  $(ProjectDir)dist\$(Platform)\</Command>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <LanguageStandard_C>stdc11</LanguageStandard_C>
-      <AdditionalIncludeDirectories>src; vendor; vendor/sdk</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>src;vendor/spdlog/include;vendor/json/include;vendor/sdk;vendor/sdk/foobar2000</AdditionalIncludeDirectories>
       <AdditionalOptions>/Zc:__cplusplus %(AdditionalOptions)</AdditionalOptions>
       <PrecompiledHeader>Use</PrecompiledHeader>
     </ClCompile>
@@ -187,7 +187,7 @@ copy $(TargetPath)  $(ProjectDir)dist\$(Platform)\</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="src\album_art_extractor.hpp" />
+    <ClInclude Include="src\album_art.hpp" />
     <ClInclude Include="src\cipher\abnormal_RC4.hpp" />
     <ClInclude Include="src\cipher\aes.hpp" />
     <ClInclude Include="src\cipher\aes_common.hpp" />
@@ -197,17 +197,20 @@ copy $(TargetPath)  $(ProjectDir)dist\$(Platform)\</Command>
     <ClInclude Include="src\cipher\utils.hpp" />
     <ClInclude Include="src\common\consts.hpp" />
     <ClInclude Include="src\common\helpers.hpp" />
+    <ClInclude Include="src\common\log.hpp" />
     <ClInclude Include="src\common\platform.hpp" />
+    <ClInclude Include="src\meta_process.hpp" />
     <ClInclude Include="src\ui\context_menu.hpp" />
     <ClInclude Include="src\input_ncm.hpp" />
     <ClInclude Include="src\ncm_file.hpp" />
     <ClInclude Include="src\stdafx.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\album_art_extractor.cpp" />
+    <ClCompile Include="src\album_art.cpp" />
     <ClCompile Include="src\cipher\abnormal_RC4.cpp" />
     <ClCompile Include="src\cipher\aes_common.cpp" />
     <ClCompile Include="src\cipher\aes_win32.cpp" />
+    <ClCompile Include="src\meta_process.cpp" />
     <ClCompile Include="src\ui\context_menu.cpp" />
     <ClCompile Include="src\input_ncm.cpp" />
     <ClCompile Include="src\main.cpp" />
