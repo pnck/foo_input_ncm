@@ -314,7 +314,7 @@ bool ncm_file::save_raw_audio(const char *to_dir, abort_callback &p_abort) {
     return false;
 }
 
-void ncm_file::overwrite_meta(const nlohmann::json &meta, abort_callback &p_abort) {
+void ncm_file::overwrite_meta(const nlohmann::json &overwrite, abort_callback &p_abort) {
     if (!meta_parsed()) {
         this->parse(parse_targets::NCM_PARSE_META);
     }
@@ -329,15 +329,20 @@ void ncm_file::overwrite_meta(const nlohmann::json &meta, abort_callback &p_abor
     // embed overwriting meta into the source
 
     auto meta_str_to_write = std::string("music:");
-    nlohmann::ordered_json live_meta = nlohmann::ordered_json::parse(meta_str_); // NOTE: use unmodified raw json string to keep stricted order
+    nlohmann::ordered_json live_meta =
+        nlohmann::ordered_json::parse(meta_str_); // NOTE: use unmodified raw json string to keep stricted order
     if (live_meta.contains(overwrite_key)) {
         live_meta.erase(overwrite_key); // replace the old key
     }
 
-    if (meta.size()) {
-        live_meta[overwrite_key] = meta;
-        live_meta[overwrite_key].emplace(foo_input_ncm_comment_key, foo_input_ncm_comment);
-    }
+    if (auto size = overwrite.size(); size > 0)
+        do {
+            if (size == 1 && overwrite.contains(foo_input_ncm_comment_key)) {
+                break;
+            }
+            live_meta[overwrite_key] = overwrite;
+            live_meta[overwrite_key].emplace(foo_input_ncm_comment_key, foo_input_ncm_comment);
+        } while (false);
     meta_str_to_write += live_meta.dump();
 
     DEBUG_LOG_F("Overwriting meta (to {}): {}", this->path(), meta_str_to_write);

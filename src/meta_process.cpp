@@ -99,13 +99,17 @@ void meta_processor::update_by_json(const nlohmann::json &json, bool overwriting
     using refl_f_t = void(const nlohmann::json &);
     auto reflection = std::unordered_map<std::string_view, std::function<refl_f_t>>{}; // UPPERCASE keys
     reflection["artist"] = [&](const json_t &j) {
+        if (j.is_null()) {
+            artist.reset();
+            return;
+        }
         if (!artist.has_value()) {
+            artist.emplace();
+        } else if (overwriting) {
+            artist.reset();
             artist.emplace();
         }
         for (const auto &val : j.get_ref<const json_t::array_t &>()) {
-            if (!val.is_array()) {
-                continue;
-            }
             if (val.size() != 2) {
                 continue;
             }
@@ -121,6 +125,10 @@ void meta_processor::update_by_json(const nlohmann::json &json, bool overwriting
 
 #define reflect_single(field, TYPE)                                 \
     [&](const json_t &j) {                                          \
+        if (j.is_null()) {                                          \
+            field.reset();                                          \
+            return;                                                 \
+        }                                                           \
         try {                                                       \
             update_v(field, j.get<TYPE>());                         \
         } catch (const json_t::type_error &) {                      \
@@ -133,6 +141,10 @@ void meta_processor::update_by_json(const nlohmann::json &json, bool overwriting
     }
 #define reflect_multi_string(field)                                    \
     [&](const json_t &j) {                                             \
+        if (j.is_null()) {                                             \
+            field.reset();                                             \
+            return;                                                    \
+        }                                                              \
         if (!j.is_array()) {                                           \
             return;                                                    \
         }                                                              \

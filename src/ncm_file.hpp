@@ -64,7 +64,7 @@ namespace fb2k_ncm
         }
         void parse(uint16_t to_parse = 0xffff);
         bool save_raw_audio(const char *to_dir, abort_callback &p_abort = fb2k::noAbort);
-        void overwrite_meta(const nlohmann::json &meta, abort_callback &p_abort = fb2k::noAbort);
+        void overwrite_meta(const nlohmann::json &overwrite, abort_callback &p_abort = fb2k::noAbort);
         void reset_album_image(album_art_data_ptr image, abort_callback &p_abort = fb2k::noAbort);
 
     private:

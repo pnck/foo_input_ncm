@@ -32,7 +32,7 @@ inline bool fb2k_ncm::input_ncm::g_is_our_content_type(const char *p_content_typ
 /// The former is stored in the audio content, while the latter is stored in the ncm header.
 /// @note
 /// - See also: `ncm_file::overwrite_meta()`
-inline void fb2k_ncm::input_ncm::retag(const file_info &p_info, abort_callback &p_abort) {
+void fb2k_ncm::input_ncm::retag(const file_info &p_info, abort_callback &p_abort) {
     DEBUG_LOG("input_ncm::retag()");
     // Replay Gain
     file_info_impl cur_file_info;
@@ -45,21 +45,50 @@ inline void fb2k_ncm::input_ncm::retag(const file_info &p_info, abort_callback &
     // NOTE: Always do differential update, to maximally avoid appending "overwrite" key,
     // which will change the "163 key xxxx" content.
     auto target_json = meta_processor(p_info).dump();
+    if (target_json.empty()) { // fallback case: clear all fields
+        return this->remove_tags(p_abort);
+    }
     this->get_info(cur_file_info, p_abort);
     auto current_json = meta_processor(cur_file_info).dump();
 
-    if (current_json.contains(overwrite_key)) {
-        current_json.erase(overwrite_key);
+    auto overwrite = json_t::object();
+
+    if (ncm_file_->meta_info().contains(overwrite_key)) {
+        // overwrite is guaranteed to be suitable with current_meta
+        // because this->get_info() will call parse() and reset meta_info()
+        overwrite = ncm_file_->meta_info()[overwrite_key];
     }
 
     auto diff = json_t::diff(current_json, target_json);
-    ncm_file_->overwrite_meta(json_t::object().patch(diff), p_abort);
+    auto to_merge = json_t::object();
+    for (const auto &op : diff) {
+        json_t::json_pointer pt(op["path"]);
+        for (; !pt.parent_pointer().empty(); pt = pt.parent_pointer()) {
+            continue;
+        }
+        if (op["op"] == "remove") {
+            if (!overwrite.contains(pt.back())) {
+                overwrite.emplace(pt.back(), nullptr);
+            } else {
+                overwrite[pt.back()] = nullptr;
+            }
+        } else {
+            if (overwrite.contains(pt.back())) {
+                overwrite.erase(pt.back());
+            }
+            overwrite.emplace(pt.back(), target_json.at(pt)); // copy the top level
+        }
+    }
+
+    overwrite.merge_patch(to_merge);
+
+    ncm_file_->overwrite_meta(overwrite, p_abort);
 }
 
 /// @brief "Clear tags" => restore the meta field (163 key) to its original state
 /// @attention ReplayGain and embedded tags in the audio content are left untouched.
 /// @note ReplayGain can be wiped by retagging, since the meta diff would be empty then.
-inline void fb2k_ncm::input_ncm::remove_tags(abort_callback &p_abort) {
+void fb2k_ncm::input_ncm::remove_tags(abort_callback &p_abort) {
     DEBUG_LOG("input_ncm::remove_tags()");
     // source_info_writer_->remove_tags_fallback(p_abort);
     ncm_file_->overwrite_meta(nlohmann::json(), p_abort);
