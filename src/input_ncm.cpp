@@ -264,6 +264,7 @@ void input_ncm::get_info(file_info &p_info, abort_callback &p_abort) {
     reader->get_info(/*sub song*/ 0, p_info, p_abort);
 
     auto mp = meta_processor(p_info);
+    p_info.meta_remove_all();
     mp.update(ncm_file_->meta_info());
     mp.apply(p_info);
 }

@@ -55,6 +55,31 @@ namespace fb2k_ncm
         }
     } // namespace
 
+    namespace
+    {
+        class weak_typed_id {
+            uint64_t n_ = 0;
+
+        public:
+            explicit weak_typed_id(const nlohmann::json &json) {
+                if (json.is_number_integer()) {
+                    n_ = json.get<uint64_t>();
+                } else if (json.is_string()) {
+                    n_ = std::stoull(json.get<std::string>());
+                }
+            }
+            explicit weak_typed_id(const std::string &s) : n_(0) {
+                try {
+                    n_ = std::stoull(s);
+                } catch (std::invalid_argument &e) {
+                }
+            }
+            explicit weak_typed_id(std::integral auto n) : n_(n) {}
+            operator uint64_t() const noexcept { return n_; }
+            operator std::string() const { return std::to_string(n_); }
+        };
+    } // namespace
+
     class meta_processor : public uniform_meta_st {
     public:
         void update(const file_info &info);      // FB2K
