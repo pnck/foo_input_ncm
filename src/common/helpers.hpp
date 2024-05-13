@@ -27,8 +27,8 @@ namespace
         using base_t = std::string;
         constexpr decay_string() : base_t() {}
         constexpr decay_string(base_t &&str) noexcept : base_t(std::move(str)) {}
-        operator const char *() const noexcept { return this->data(); }
-        operator std::string_view() const noexcept { return {this->data(), this->size()}; }
+        constexpr operator const char *() const noexcept { return this->data(); }
+        constexpr operator std::string_view() const noexcept { return {this->data(), this->size()}; }
     };
 
     constexpr decay_string operator""_upper(const char *str, std::size_t len) {
@@ -40,14 +40,14 @@ namespace
         }
         return result;
     }
-    /*
+#if 0 // string can be implicitly converted to string_view
         constexpr decay_string upper(const std::string &s) {
             decay_string result;
             std::transform(
                 s.begin(), s.end(), std::back_inserter(result), [](char c) -> char { return (c >= 'a' && c <= 'z') ? c - ('a' - 'A') : c;
        }); return result;
         }
-    */
+#endif
     constexpr auto upper(std::string_view v) {
         return operator""_upper(v.data(), v.size());
     }

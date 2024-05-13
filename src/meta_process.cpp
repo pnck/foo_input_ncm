@@ -84,9 +84,13 @@ void meta_processor::update(const file_info &info) { // FB2K
 }
 
 void meta_processor::update(const nlohmann::json &json) { // NCM, public
-    update_by_json(json);
-    if (json.contains("overwrite")) {
-        update_by_json(json["overwrite"], true);
+    try {
+        update_by_json(json);
+        if (json.contains("overwrite")) {
+            update_by_json(json["overwrite"], true);
+        }
+    } catch (const std::exception &e) {
+        ERROR_LOG_F("Error processing meta({}): {}", e.what(), json.dump());
     }
 }
 
@@ -123,21 +127,26 @@ void meta_processor::update_by_json(const nlohmann::json &json, bool overwriting
     // NOTE: I found an abnormal case that albumPicId is a number instead of string.
     // So I deside to test every possible numeric type and try to convert them.
 
-#define reflect_single(field, TYPE)                                 \
-    [&](const json_t &j) {                                          \
-        if (j.is_null()) {                                          \
-            field.reset();                                          \
-            return;                                                 \
-        }                                                           \
-        try {                                                       \
-            update_v(field, j.get<TYPE>());                         \
-        } catch (const json_t::type_error &) {                      \
-            if constexpr (std::is_same_v<TYPE, std::string>) {      \
-                update_v(field, std::to_string(j.get<uint64_t>())); \
-            } else if constexpr (std::is_same_v<TYPE, uint64_t>) {  \
-                update_v(field, std::stoull(j.get<std::string>())); \
-            }                                                       \
-        }                                                           \
+#define reflect_single(field, TYPE)                                     \
+    [&](const json_t &j) {                                              \
+        if (j.is_null()) {                                              \
+            field.reset();                                              \
+            return;                                                     \
+        }                                                               \
+        try {                                                           \
+            update_v(field, j.get<TYPE>());                             \
+        } catch (const json_t::type_error &) {                          \
+            try {                                                       \
+                if constexpr (std::is_same_v<TYPE, std::string>) {      \
+                    update_v(field, std::to_string(j.get<uint64_t>())); \
+                } else if constexpr (std::is_same_v<TYPE, uint64_t>) {  \
+                                                                        \
+                    update_v(field, std::stoull(j.get<std::string>())); \
+                }                                                       \
+            } catch (const json_t::type_error &) {                      \
+            } catch (const std::invalid_argument &) {                   \
+            }                                                           \
+        }                                                               \
     }
 #define reflect_multi_string(field)                                    \
     [&](const json_t &j) {                                             \
