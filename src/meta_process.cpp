@@ -15,7 +15,7 @@ using json_t = nlohmann::json;
 
 void meta_processor::update(const file_info &info) { // FB2K
     using refl_f_t = void(t_size /*enum index*/);
-    auto reflection = std::unordered_map<std::string_view, std::function<refl_f_t>>{}; // UPPERCASE keys
+    auto reflection = std::unordered_map<std::string, std::function<refl_f_t>>{}; // UPPERCASE keys
     reflection["artist"_upper] = [&](t_size meta_entry) {
         auto vc = info.meta_enum_value_count(meta_entry);
         if (!vc) {
@@ -58,9 +58,9 @@ void meta_processor::update(const file_info &info) { // FB2K
     reflection["transNames"_upper] = reflect_multi(transNames);
 
     // ignore essential special keys
-    reflection[foo_input_ncm_comment_key] = [](auto...) {};
+    reflection[foo_input_ncm_comment_key.data()] = [](auto...) {};
     reflection[upper(foo_input_ncm_comment_key)] = [](auto...) {};
-    reflection[overwrite_key] = [](auto...) {};
+    reflection[overwrite_key.data()] = [](auto...) {};
     reflection[upper(overwrite_key)] = [](auto...) {};
 
     auto meta_count = info.meta_get_count();
@@ -84,9 +84,13 @@ void meta_processor::update(const file_info &info) { // FB2K
 }
 
 void meta_processor::update(const nlohmann::json &json) { // NCM, public
-    update_by_json(json);
-    if (json.contains("overwrite")) {
-        update_by_json(json["overwrite"], true);
+    try {
+        update_by_json(json);
+        if (json.contains("overwrite")) {
+            update_by_json(json["overwrite"], true);
+        }
+    } catch (const std::exception &e) {
+        ERROR_LOG_F("Error processing meta({}): {}", e.what(), json.dump());
     }
 }
 
@@ -97,7 +101,7 @@ void meta_processor::update_by_json(const nlohmann::json &json, bool overwriting
     }
 
     using refl_f_t = void(const nlohmann::json &);
-    auto reflection = std::unordered_map<std::string_view, std::function<refl_f_t>>{}; // UPPERCASE keys
+    auto reflection = std::unordered_map<std::string, std::function<refl_f_t>>{}; // UPPERCASE keys
     reflection["artist"] = [&](const json_t &j) {
         if (j.is_null()) {
             artist.reset();
@@ -113,31 +117,30 @@ void meta_processor::update_by_json(const nlohmann::json &json, bool overwriting
             if (val.size() != 2) {
                 continue;
             }
-            if (!val[0].is_string() || !val[1].is_number_integer()) {
+            if (!val[0].is_string() /*|| !val[1].is_number_integer()*/) { // ARTIST ID can be str or num
                 continue;
             }
-            artist->emplace(val[0].get<std::string>(), val[1].get<uint64_t>());
+            artist->emplace(val[0].get<std::string>(), weak_typed_id(val[1]));
         }
     };
 
     // NOTE: I found an abnormal case that albumPicId is a number instead of string.
     // So I deside to test every possible numeric type and try to convert them.
 
-#define reflect_single(field, TYPE)                                 \
-    [&](const json_t &j) {                                          \
-        if (j.is_null()) {                                          \
-            field.reset();                                          \
-            return;                                                 \
-        }                                                           \
-        try {                                                       \
-            update_v(field, j.get<TYPE>());                         \
-        } catch (const json_t::type_error &) {                      \
-            if constexpr (std::is_same_v<TYPE, std::string>) {      \
-                update_v(field, std::to_string(j.get<uint64_t>())); \
-            } else if constexpr (std::is_same_v<TYPE, uint64_t>) {  \
-                update_v(field, std::stoull(j.get<std::string>())); \
-            }                                                       \
-        }                                                           \
+#define reflect_single(field, TYPE)                \
+    [&](const json_t &j) {                         \
+        if (j.is_null()) {                         \
+            field.reset();                         \
+            return;                                \
+        }                                          \
+        try {                                      \
+            update_v(field, j.get<TYPE>());        \
+        } catch (const json_t::type_error &) {     \
+            try {                                  \
+                update_v(field, weak_typed_id(j)); \
+            } catch (const json_t::type_error &) { \
+            }                                      \
+        }                                          \
     }
 #define reflect_multi_string(field)                                    \
     [&](const json_t &j) {                                             \
@@ -192,9 +195,9 @@ void meta_processor::update_by_json(const nlohmann::json &json, bool overwriting
     reflection["Lyrics"_upper] = reflect_single(lyrics, std::string);
 
     // ignore comment key
-    reflection[foo_input_ncm_comment_key] = [](auto...) { /* DO NOTHING*/ };
+    reflection[foo_input_ncm_comment_key.data()] = [](auto...) { /* DO NOTHING*/ };
     // ignore overwrite currently
-    reflection[overwrite_key] = [](auto...) {};
+    reflection[overwrite_key.data()] = [](auto...) {};
 
     for (const auto &[key, val] : json.items()) {
         if (reflection.contains(key)) {

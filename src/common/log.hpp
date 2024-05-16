@@ -165,4 +165,6 @@ extern const struct _spdlog_init_helper_st {
 #define DEBUG_LOG(...) SPDLOG_DEBUG(_forward_strs(__VA_ARGS__))
 #define DEBUG_LOG_F(...) SPDLOG_DEBUG(__VA_ARGS__)
 #define WARN_LOG(...) SPDLOG_WARN(_forward_strs(__VA_ARGS__))
+#define WARN_LOG_F(...) SPDLOG_WARN(__VA_ARGS__)
 #define ERROR_LOG(...) SPDLOG_ERROR(_forward_strs(__VA_ARGS__))
+#define ERROR_LOG_F(...) SPDLOG_ERROR(__VA_ARGS__)
