@@ -65,7 +65,9 @@ namespace fb2k_ncm
                 if (json.is_number_integer()) {
                     n_ = json.get<uint64_t>();
                 } else if (json.is_string()) {
-                    n_ = std::stoull(json.get<std::string>());
+                    if (auto &&s = json.get<std::string>(); !s.empty()) {
+                        n_ = std::stoull(s);
+                    }
                 }
             }
             explicit weak_typed_id(const std::string &s) : n_(0) {
