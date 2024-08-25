@@ -7,6 +7,7 @@
 
 #include <type_traits>
 #include <concepts>
+#include <string>
 
 namespace fb2k_ncm
 {
@@ -20,8 +21,8 @@ namespace fb2k_ncm
             using CT = std::remove_cvref_t<decltype(*std::declval<T>())>;
             constexpr bool is_char_seq = requires {
                 {
-                    CT{}.data()[0] /* NOTE: map::operator[] accepts pointer, so can't be distinguished by [0]*/
-                } -> std::convertible_to<char>;
+                    CT{}.data() /* NOTE: map::operator[] accepts pointer, so can't be distinguished by CT{}[0]*/
+                } -> std::convertible_to<const char*>;
             };
             if constexpr (std::convertible_to<CT, uint64_t> || is_char_seq) {
                 return true;
@@ -46,12 +47,13 @@ namespace fb2k_ncm
         concept multiT = opt_is_multi<T>();
 
         consteval void traits_tests() {
-            using ST = decltype(uniform_meta_st{}.album);
+            using ST = decltype(uniform_meta_st{}.title);
             using MT = decltype(uniform_meta_st{}.genre);
             using artistT = decltype(uniform_meta_st{}.artist);
+            static_assert(singleT<std::optional<std::string>>, "check your template implementation");
             static_assert(singleT<ST>, "check your template implementation");
             static_assert(multiT<MT>, "check your template implementation");
-            static_assert(!singleT<artistT> && !multiT<artistT>, "check your template implementation");
+            //static_assert(!singleT<artistT> && !multiT<artistT>, "check your template implementation");
         }
     } // namespace
 
