@@ -131,7 +131,7 @@ jobs:
 
       - name: Download Foobar2000 SDK
         run: |
-          curl -L https://www.foobar2000.org/files/SDK-2023-09-23.7z -o vendor/foobar2000_sdk.7z
+          curl -L https://www.foobar2000.org/files/SDK-2024-08-07.7z -o vendor/foobar2000_sdk.7z
           7z x vendor/foobar2000_sdk.7z -ovendor/sdk
           ls vendor/sdk
 
