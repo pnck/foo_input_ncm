@@ -1,9 +1,13 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 
 /*
 
   Change Log
-
+ 
+  Version 0.5.3
+  - Bump sdk version to 20240807
+  - Minor bug fixes
+ 
   Version 0.5.0
   - Support of ReplayGain and retagging
     - Tags in the audio content and the embedded JSON metainfo are left untouched. 
