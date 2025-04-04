@@ -25,11 +25,6 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Download Foobar2000 SDK
-        run: |
-          curl -L https://www.foobar2000.org/files/SDK-2023-09-23.7z -o vendor/foobar2000_sdk.7z
-          7z x vendor/foobar2000_sdk.7z -ovendor/sdk
-          ls vendor/sdk
 
       - name: Setup Msbuild
         uses: microsoft/setup-msbuild@v2
@@ -66,11 +61,6 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Download Foobar2000 SDK
-        run: |
-          curl -L https://www.foobar2000.org/files/SDK-2023-09-23.7z -o vendor/foobar2000_sdk.7z
-          7z x vendor/foobar2000_sdk.7z -ovendor/sdk
-          ls vendor/sdk
 
       - name: Setup GoogleTest Xcode Project
         working-directory: ${{ github.workspace }}/vendor/googletest
