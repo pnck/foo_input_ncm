@@ -7,3 +7,6 @@
 [submodule "vendor/json"]
 	path = vendor/json
 	url = git@github.com:nlohmann/json.git
+[submodule "vendor/sdk"]
+	path = vendor/sdk
+	url = https://github.com/pnck/foobar2000_sdk.git

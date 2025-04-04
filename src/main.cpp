@@ -4,6 +4,9 @@
 
   Change Log
  
+  Version 0.5.4
+  - Bump sdk version to 20250307
+ 
   Version 0.5.3
   - Bump sdk version to 20240807
   - Minor bug fixes
